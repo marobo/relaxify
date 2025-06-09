@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Offline - Relaxify{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 text-center">
+            <!-- Offline Icon -->
+            <div class="mb-4">
+                <i class="fas fa-wifi-slash text-muted" style="font-size: 5rem;"></i>
+            </div>
+            
+            <!-- Offline Message -->
+            <h1 class="h2 fw-bold mb-3">You're Offline</h1>
+            <p class="lead text-muted mb-4">
+                Don't worry! You can still access your saved playlists and enjoy relaxing music.
+            </p>
+            
+            <!-- Offline Features -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">What you can do offline:</h5>
+                    <ul class="list-unstyled text-start">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Access previously saved playlists
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Browse your offline music collection
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Use the app interface
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-times text-danger me-2"></i>
+                            Stream new content (requires internet)
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Offline Playlists -->
+            <div id="offline-playlists" class="mb-4">
+                <h5>Your Offline Playlists</h5>
+                <div id="offline-playlist-list" class="row">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div id="no-offline-playlists" class="text-muted" style="display: none;">
+                    <p>No playlists saved for offline use yet.</p>
+                    <p class="small">When you're back online, save some playlists for offline listening!</p>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                <button id="retry-connection" class="btn btn-primary">
+                    <i class="fas fa-sync me-1"></i> Try Again
+                </button>
+                
+                <button id="refresh-offline" class="btn btn-outline-secondary">
+                    <i class="fas fa-refresh me-1"></i> Refresh Offline Content
+                </button>
+            </div>
+            
+            <!-- Connection Status -->
+            <div id="connection-status" class="mt-4">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Connection Status:</strong> <span id="status-text">Offline</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadOfflinePlaylists();
+    checkConnectionStatus();
+    
+    // Retry connection button
+    document.getElementById('retry-connection').addEventListener('click', function() {
+        if (navigator.onLine) {
+            window.location.href = '/';
+        } else {
+            alert('Still offline. Please check your internet connection.');
+        }
+    });
+    
+    // Refresh offline content button
+    document.getElementById('refresh-offline').addEventListener('click', function() {
+        loadOfflinePlaylists();
+    });
+    
+    // Listen for online/offline events
+    window.addEventListener('online', function() {
+        updateConnectionStatus(true);
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+    });
+    
+    window.addEventListener('offline', function() {
+        updateConnectionStatus(false);
+    });
+});
+
+async function loadOfflinePlaylists() {
+    try {
+        const playlists = await getOfflinePlaylists();
+        const playlistList = document.getElementById('offline-playlist-list');
+        const noPlaylistsMsg = document.getElementById('no-offline-playlists');
+        
+        if (playlists.length > 0) {
+            playlistList.innerHTML = '';
+            noPlaylistsMsg.style.display = 'none';
+            
+            playlists.forEach(playlist => {
+                const playlistCard = createOfflinePlaylistCard(playlist);
+                playlistList.appendChild(playlistCard);
+            });
+        } else {
+            playlistList.innerHTML = '';
+            noPlaylistsMsg.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading offline playlists:', error);
+        document.getElementById('no-offline-playlists').style.display = 'block';
+    }
+}
+
+function createOfflinePlaylistCard(playlist) {
+    const col = document.createElement('div');
+    col.className = 'col-md-6 mb-3';
+    
+    col.innerHTML = `
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">${playlist.title}</h6>
+                <p class="card-text small text-muted">${playlist.description ? playlist.description.substring(0, 100) + '...' : 'No description'}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-download"></i> Offline
+                    </small>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewOfflinePlaylist(${playlist.id})">
+                        View
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+function viewOfflinePlaylist(playlistId) {
+    // In a real implementation, this would show the offline playlist details
+    alert('Offline playlist viewing would be implemented here. This requires the playlist data to be fully cached including video content.');
+}
+
+async function getOfflinePlaylists() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('relaxify-db', 1);
+        
+        request.onerror = () => reject(request.error);
+        
+        request.onsuccess = () => {
+            const db = request.result;
+            
+            if (!db.objectStoreNames.contains('playlists')) {
+                resolve([]);
+                return;
+            }
+            
+            const transaction = db.transaction(['playlists'], 'readonly');
+            const store = transaction.objectStore('playlists');
+            const getAllRequest = store.getAll();
+            
+            getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+            getAllRequest.onerror = () => reject(getAllRequest.error);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('playlists')) {
+                const store = db.createObjectStore('playlists', { keyPath: 'id' });
+                store.createIndex('title', 'title', { unique: false });
+            }
+        };
+    });
+}
+
+function checkConnectionStatus() {
+    updateConnectionStatus(navigator.onLine);
+}
+
+function updateConnectionStatus(isOnline) {
+    const statusText = document.getElementById('status-text');
+    const connectionStatus = document.getElementById('connection-status');
+    const alert = connectionStatus.querySelector('.alert');
+    
+    if (isOnline) {
+        statusText.textContent = 'Back Online!';
+        alert.className = 'alert alert-success';
+        alert.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Connection Status:</strong> <span id="status-text">Back Online!</span>';
+    } else {
+        statusText.textContent = 'Offline';
+        alert.className = 'alert alert-warning';
+        alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Connection Status:</strong> <span id="status-text">Offline</span>';
+    }
+}
+</script>
+{% endblock %}

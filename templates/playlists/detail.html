@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ playlist.title }} - Relaxify{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Video Player Section -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-body p-0">
+                    <!-- YouTube Embed -->
+                    <div class="ratio ratio-16x9">
+                        <iframe 
+                            src="{{ playlist.embed_url }}?autoplay=1&rel=0&modestbranding=1" 
+                            title="{{ playlist.title }}"
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Video Info -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h1 class="h3 fw-bold mb-3">{{ playlist.title }}</h1>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex gap-3">
+                            <span class="text-muted">
+                                <i class="fas fa-eye"></i> {{ playlist.view_count|default:0 }} views
+                            </span>
+                            {% if playlist.duration %}
+                            <span class="text-muted">
+                                <i class="fas fa-clock"></i> {{ playlist.duration }}
+                            </span>
+                            {% endif %}
+                            <span class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ playlist.created|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if playlist.description %}
+                    <div class="mb-3">
+                        <h5>Description</h5>
+                        <p class="text-muted">{{ playlist.description|linebreaks }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary save-offline-btn" 
+                                data-playlist-id="{{ playlist.id }}">
+                            <i class="fas fa-download me-1"></i> Save Offline
+                        </button>
+                        
+                        <button class="btn btn-outline-success download-audio-btn" 
+                                data-video-id="{{ playlist.youtube_id }}">
+                            <i class="fas fa-music me-1"></i> Download Audio
+                        </button>
+                        
+                        <a href="{{ playlist.youtube_url }}" 
+                           target="_blank" 
+                           class="btn btn-outline-danger">
+                            <i class="fab fa-youtube me-1"></i> Watch on YouTube
+                        </a>
+                        
+                        <button class="btn btn-outline-info share-btn" 
+                                data-title="{{ playlist.title }}">
+                            <i class="fas fa-share me-1"></i> Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Related/Recommended -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">More Relaxing Playlists</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Discover more playlists to help you relax and unwind.</p>
+                    <a href="{% url 'playlists:home' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Browse All Playlists
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Tips -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">💡 Relaxation Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-headphones text-primary me-2"></i>
+                            Use headphones for the best experience
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-volume-down text-primary me-2"></i>
+                            Keep volume at a comfortable level
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-moon text-primary me-2"></i>
+                            Dim the lights for better relaxation
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-wifi-slash text-primary me-2"></i>
+                            Save offline for uninterrupted listening
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save for offline functionality
+    const saveOfflineBtn = document.querySelector('.save-offline-btn');
+    if (saveOfflineBtn) {
+        saveOfflineBtn.addEventListener('click', async function() {
+            const playlistId = this.dataset.playlistId;
+            const icon = this.querySelector('i');
+            const originalText = this.innerHTML;
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+            this.disabled = true;
+            
+            try {
+                // Fetch playlist data and save to IndexedDB
+                const response = await fetch(`/api/playlists/${playlistId}/`);
+                const playlist = await response.json();
+                
+                // Save to IndexedDB
+                await savePlaylistOffline(playlist);
+                
+                // Update UI
+                this.innerHTML = '<i class="fas fa-check me-1"></i> Saved Offline';
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-success');
+                
+                alert('Playlist saved for offline use!');
+                
+            } catch (error) {
+                console.error('Error saving playlist offline:', error);
+                this.innerHTML = originalText;
+                this.disabled = false;
+                alert('Failed to save playlist offline');
+            }
+        });
+    }
+    
+    // Download audio functionality
+    const downloadAudioBtn = document.querySelector('.download-audio-btn');
+    if (downloadAudioBtn) {
+        downloadAudioBtn.addEventListener('click', async function() {
+            const videoId = this.dataset.videoId;
+            const originalText = this.innerHTML;
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Downloading...';
+            this.disabled = true;
+            
+            try {
+                const response = await fetch(`/download/${videoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    this.innerHTML = '<i class="fas fa-check me-1"></i> Downloaded';
+                    this.classList.remove('btn-outline-success');
+                    this.classList.add('btn-success');
+                    alert(`Audio downloaded: ${result.title}`);
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                console.error('Error downloading audio:', error);
+                this.innerHTML = originalText;
+                this.disabled = false;
+                alert('Failed to download audio: ' + error.message);
+            }
+        });
+    }
+    
+    // Share functionality
+    const shareBtn = document.querySelector('.share-btn');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', async function() {
+            const title = this.dataset.title;
+            const url = window.location.href;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `Relaxify - ${title}`,
+                        text: 'Check out this relaxing playlist!',
+                        url: url
+                    });
+                } catch (error) {
+                    console.log('Error sharing:', error);
+                }
+            } else {
+                // Fallback: copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(url);
+                    alert('Link copied to clipboard!');
+                } catch (error) {
+                    console.error('Failed to copy link:', error);
+                    alert('Failed to copy link');
+                }
+            }
+        });
+    }
+});
+
+// IndexedDB functions
+async function savePlaylistOffline(playlist) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('relaxify-db', 1);
+        
+        request.onerror = () => reject(request.error);
+        
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction(['playlists'], 'readwrite');
+            const store = transaction.objectStore('playlists');
+            
+            const addRequest = store.put(playlist);
+            addRequest.onsuccess = () => resolve();
+            addRequest.onerror = () => reject(addRequest.error);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('playlists')) {
+                const store = db.createObjectStore('playlists', { keyPath: 'id' });
+                store.createIndex('title', 'title', { unique: false });
+            }
+        };
+    });
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

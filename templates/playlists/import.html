@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import YouTube Music - Relaxify{% endblock %}
+
+{% block extra_css %}
+<style>
+    .import-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .import-form {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-family: monospace;
+        font-size: 0.9rem;
+        resize: vertical;
+    }
+    
+    .form-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .form-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #fff;
+    }
+    
+    .btn-import {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+    }
+    
+    .btn-import:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .btn-import:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .results-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        margin-top: 2rem;
+    }
+    
+    .result-item {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .result-success {
+        background: rgba(46, 160, 67, 0.2);
+        border-left: 4px solid #2ea043;
+    }
+    
+    .result-warning {
+        background: rgba(251, 188, 4, 0.2);
+        border-left: 4px solid #fbbc04;
+    }
+    
+    .result-error {
+        background: rgba(248, 81, 73, 0.2);
+        border-left: 4px solid #f85149;
+    }
+    
+    .result-icon {
+        font-size: 1.2rem;
+    }
+    
+    .result-content {
+        flex: 1;
+        color: #fff;
+    }
+    
+    .result-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .result-url {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        font-family: monospace;
+    }
+    
+    .summary-card {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        color: #fff;
+    }
+    
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .summary-stat {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+    
+    .summary-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .loading {
+        display: none;
+        text-align: center;
+        color: #fff;
+        margin: 2rem 0;
+    }
+    
+    .loading.active {
+        display: block;
+    }
+    
+    .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 3px solid #fff;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .help-text {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        line-height: 1.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="import-container">
+    <h1 class="text-center mb-4">Import Your YouTube Music</h1>
+    
+    <form id="importForm" class="import-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="urls" class="form-label">YouTube URLs</label>
+            <textarea 
+                id="urls" 
+                name="urls" 
+                class="form-textarea" 
+                placeholder="Paste your YouTube URLs here, one per line:
+
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+https://youtu.be/dQw4w9WgXcQ
+dQw4w9WgXcQ
+
+You can paste:
+• Full YouTube URLs
+• Short youtu.be URLs  
+• Video IDs only
+• Multiple URLs (one per line)"
+                required
+            ></textarea>
+            <div class="help-text">
+                Paste your saved YouTube music URLs here. You can use any YouTube URL format or just the video ID.
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-checkbox">
+                <input type="checkbox" id="updateExisting" name="update_existing">
+                <span>Update existing playlists with new metadata</span>
+            </label>
+            <div class="help-text">
+                Check this box to update playlists you've already imported with fresh metadata from YouTube.
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button type="submit" class="btn-import" id="importBtn">
+                Import Music
+            </button>
+        </div>
+    </form>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Importing your music... This may take a while for many URLs.</p>
+    </div>
+    
+    <div id="results" class="results-container" style="display: none;">
+        <h3 class="text-white mb-3">Import Results</h3>
+        <div id="summary"></div>
+        <div id="resultsList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('importForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const importBtn = document.getElementById('importBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    
+    // Show loading state
+    importBtn.disabled = true;
+    importBtn.textContent = 'Importing...';
+    loading.classList.add('active');
+    results.style.display = 'none';
+    
+    try {
+        const response = await fetch('{% url "playlists:import" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data.results, data.summary);
+        } else {
+            alert('Error: ' + data.error);
+        }
+        
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    } finally {
+        // Hide loading state
+        importBtn.disabled = false;
+        importBtn.textContent = 'Import Music';
+        loading.classList.remove('active');
+    }
+});
+
+function displayResults(results, summary) {
+    const resultsContainer = document.getElementById('results');
+    const summaryDiv = document.getElementById('summary');
+    const resultsListDiv = document.getElementById('resultsList');
+    
+    // Create summary
+    summaryDiv.innerHTML = `
+        <div class="summary-card">
+            <h4>Import Summary</h4>
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.created}</span>
+                    <span>Created</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.updated}</span>
+                    <span>Updated</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.errors}</span>
+                    <span>Errors</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.total}</span>
+                    <span>Total</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Create results list
+    resultsListDiv.innerHTML = results.map(result => {
+        let statusClass, statusIcon, statusText;
+        
+        switch (result.status) {
+            case 'created':
+                statusClass = 'result-success';
+                statusIcon = '✅';
+                statusText = 'Created';
+                break;
+            case 'updated':
+                statusClass = 'result-success';
+                statusIcon = '🔄';
+                statusText = 'Updated';
+                break;
+            case 'exists':
+                statusClass = 'result-warning';
+                statusIcon = '⚠️';
+                statusText = 'Already exists';
+                break;
+            case 'error':
+                statusClass = 'result-error';
+                statusIcon = '❌';
+                statusText = 'Error';
+                break;
+        }
+        
+        return `
+            <div class="result-item ${statusClass}">
+                <span class="result-icon">${statusIcon}</span>
+                <div class="result-content">
+                    <div class="result-title">
+                        ${statusText}: ${result.title || result.message || 'Unknown'}
+                    </div>
+                    <div class="result-url">${result.url}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    resultsContainer.style.display = 'block';
+    resultsContainer.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+{% endblock %} 

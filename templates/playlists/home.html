@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relaxify - Relaxing Music Playlists{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold mb-3">
+                Find Your Perfect Relaxation
+            </h1>
+            <p class="lead text-muted mb-4">
+                Curated YouTube playlists for meditation, sleep, study, and pure relaxation
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <span class="badge bg-primary fs-6 px-3 py-2">🧘 Meditation</span>
+                <span class="badge bg-secondary fs-6 px-3 py-2">😴 Sleep</span>
+                <span class="badge bg-success fs-6 px-3 py-2">📚 Study</span>
+                <span class="badge bg-info fs-6 px-3 py-2">🌊 Nature</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Playlists Grid -->
+    <div class="row">
+        {% if playlists %}
+            {% for playlist in playlists %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100">
+                    <!-- Thumbnail -->
+                    <div class="position-relative">
+                        {% if playlist.thumbnail_url %}
+                            <img src="{{ playlist.thumbnail_url }}" class="card-img-top" alt="{{ playlist.title }}" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-gradient" style="height: 200px; background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                <i class="fas fa-music text-white" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Duration Badge -->
+                        {% if playlist.duration %}
+                        <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75">
+                            {{ playlist.duration }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Card Body -->
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">{{ playlist.title }}</h5>
+                        
+                        {% if playlist.description %}
+                        <p class="card-text text-muted small flex-grow-1">
+                            {{ playlist.description|truncatewords:20 }}
+                        </p>
+                        {% endif %}
+                        
+                        <!-- Stats -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <small class="text-muted">
+                                <i class="fas fa-eye"></i> {{ playlist.view_count|default:0 }} views
+                            </small>
+                            <small class="text-muted">
+                                {{ playlist.created|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'playlists:detail' playlist.id %}" 
+                               class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-play me-1"></i> Listen
+                            </a>
+                            
+                            <button class="btn btn-outline-secondary save-offline-btn" 
+                                    data-playlist-id="{{ playlist.id }}"
+                                    title="Save for offline">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="col-12 text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-music text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="text-muted">No playlists available yet</h3>
+                <p class="text-muted">Check back soon for relaxing music playlists!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Save for offline functionality
+    const saveOfflineButtons = document.querySelectorAll('.save-offline-btn');
+    saveOfflineButtons.forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const playlistId = this.dataset.playlistId;
+            const icon = this.querySelector('i');
+            
+            // Show loading state
+            icon.className = 'fas fa-spinner fa-spin';
+            this.disabled = true;
+            
+            try {
+                // Fetch playlist data and save to IndexedDB
+                const response = await fetch(`/api/playlists/${playlistId}/`);
+                const playlist = await response.json();
+                
+                // Save to IndexedDB
+                await savePlaylistOffline(playlist);
+                
+                // Update UI
+                icon.className = 'fas fa-check text-success';
+                this.title = 'Saved offline';
+                
+                alert('Playlist saved for offline use!');
+                
+            } catch (error) {
+                console.error('Error saving playlist offline:', error);
+                icon.className = 'fas fa-download';
+                this.disabled = false;
+                alert('Failed to save playlist offline');
+            }
+        });
+    });
+});
+
+// IndexedDB functions
+async function savePlaylistOffline(playlist) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('relaxify-db', 1);
+        
+        request.onerror = () => reject(request.error);
+        
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction(['playlists'], 'readwrite');
+            const store = transaction.objectStore('playlists');
+            
+            const addRequest = store.put(playlist);
+            addRequest.onsuccess = () => resolve();
+            addRequest.onerror = () => reject(addRequest.error);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('playlists')) {
+                const store = db.createObjectStore('playlists', { keyPath: 'id' });
+                store.createIndex('title', 'title', { unique: false });
+            }
+        };
+    });
+}
+</script>
+{% endblock %} 
