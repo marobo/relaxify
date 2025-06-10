@@ -1,32 +1,56 @@
 from django.contrib import admin
-from .models import Playlist
+from .models import Playlist, PlaylistCollection, UserPlaylistCollection
+
+
+@admin.register(PlaylistCollection)
+class PlaylistCollectionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'platform', 'playlist_count', 'total_duration_formatted', 'is_active', 'created']
+    list_filter = ['platform', 'is_active', 'created']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created', 'updated', 'playlist_count', 'total_duration_formatted']
+    fields = ['name', 'description', 'platform', 'youtube_playlist_id', 'thumbnail_url', 'is_active', 'created', 'updated']
 
 
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):
-    list_display = ('title', 'youtube_id', 'view_count', 'is_active', 'created', 'updated')
-    list_filter = ('is_active', 'created', 'updated')
-    search_fields = ('title', 'youtube_id', 'description')
-    readonly_fields = ('youtube_url', 'embed_url', 'created', 'updated')
-    list_editable = ('is_active',)
-    ordering = ('-created',)
-
+    list_display = ['title', 'artist', 'collection', 'platform_source', 'duration', 'view_count', 'is_active', 'created']
+    list_filter = ['platform_source', 'is_active', 'created', 'collection']
+    search_fields = ['title', 'artist', 'album', 'youtube_id']
+    readonly_fields = ['created', 'updated', 'youtube_url', 'embed_url', 'youtube_music_url']
+    list_per_page = 50
+    
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'youtube_id', 'description')
+            'fields': ('title', 'artist', 'album', 'track_number', 'collection')
         }),
-        ('Media', {
-            'fields': ('thumbnail_url', 'duration', 'view_count')
+        ('YouTube Details', {
+            'fields': ('youtube_id', 'platform_source', 'thumbnail_url', 'youtube_url', 'embed_url', 'youtube_music_url')
         }),
-        ('Status', {
-            'fields': ('is_active',)
+        ('Metadata', {
+            'fields': ('description', 'duration', 'duration_seconds', 'view_count')
         }),
-        ('URLs', {
-            'fields': ('youtube_url', 'embed_url'),
-            'classes': ('collapse',)
+        ('Status & Timestamps', {
+            'fields': ('is_active', 'created', 'updated')
         }),
-        ('Timestamps', {
-            'fields': ('created', 'updated'),
-            'classes': ('collapse',)
+    )
+
+
+@admin.register(UserPlaylistCollection)
+class UserPlaylistCollectionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'total_tracks', 'is_public', 'created']
+    list_filter = ['is_public', 'created']
+    search_fields = ['name', 'description']
+    readonly_fields = ['created', 'updated', 'total_tracks']
+    filter_horizontal = ['collections', 'tracks']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'description', 'is_public')
+        }),
+        ('Collections & Tracks', {
+            'fields': ('collections', 'tracks')
+        }),
+        ('Metadata', {
+            'fields': ('total_tracks', 'created', 'updated')
         }),
     )

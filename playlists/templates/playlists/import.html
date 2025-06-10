@@ -3,250 +3,98 @@
 
 {% block title %}Import YouTube Music - Relaxify{% endblock %}
 
-{% block extra_css %}
-<style>
-    .import-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        padding: 0 1rem;
-    }
-    
-    .import-form {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 2rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-    }
-    
-    .form-textarea {
-        width: 100%;
-        min-height: 200px;
-        padding: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        font-family: monospace;
-        font-size: 0.9rem;
-        resize: vertical;
-    }
-    
-    .form-textarea::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-    }
-    
-    .form-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #fff;
-    }
-    
-    .btn-import {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 50px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 1rem;
-    }
-    
-    .btn-import:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    
-    .btn-import:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-    
-    .results-container {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-top: 2rem;
-    }
-    
-    .result-item {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-    
-    .result-success {
-        background: rgba(46, 160, 67, 0.2);
-        border-left: 4px solid #2ea043;
-    }
-    
-    .result-warning {
-        background: rgba(251, 188, 4, 0.2);
-        border-left: 4px solid #fbbc04;
-    }
-    
-    .result-error {
-        background: rgba(248, 81, 73, 0.2);
-        border-left: 4px solid #f85149;
-    }
-    
-    .result-icon {
-        font-size: 1.2rem;
-    }
-    
-    .result-content {
-        flex: 1;
-        color: #fff;
-    }
-    
-    .result-title {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-    
-    .result-url {
-        font-size: 0.9rem;
-        opacity: 0.8;
-        font-family: monospace;
-    }
-    
-    .summary-card {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        color: #fff;
-    }
-    
-    .summary-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    
-    .summary-stat {
-        text-align: center;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
-    }
-    
-    .summary-number {
-        font-size: 2rem;
-        font-weight: bold;
-        display: block;
-    }
-    
-    .loading {
-        display: none;
-        text-align: center;
-        color: #fff;
-        margin: 2rem 0;
-    }
-    
-    .loading.active {
-        display: block;
-    }
-    
-    .spinner {
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border-top: 3px solid #fff;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .help-text {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-        line-height: 1.5;
-    }
-</style>
-{% endblock %}
+{% block extra_css %}{% endblock %}
 
 {% block content %}
 <div class="import-container">
     <h1 class="text-center mb-4">Import Your YouTube Music</h1>
+    <p class="text-center mb-4 import-description">
+        Import individual videos, entire playlists, or YouTube Music collections
+    </p>
     
     <form id="importForm" class="import-form">
         {% csrf_token %}
         
         <div class="form-group">
-            <label for="urls" class="form-label">YouTube URLs</label>
-            <textarea 
-                id="urls" 
-                name="urls" 
-                class="form-textarea" 
-                placeholder="Paste your YouTube URLs here, one per line:
+            <label class="form-label">
+                <i class="fas fa-music"></i> Import Mode
+            </label>
+            <div class="import-mode-options">
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="individual" checked>
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>Individual Videos</strong>
+                        <small>Import individual YouTube videos or YouTube Music tracks</small>
+                    </div>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="playlist">
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>YouTube Playlists</strong>
+                        <small>Import entire YouTube playlists with all videos</small>
+                    </div>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="youtube_music">
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>YouTube Music</strong>
+                        <small>Import from YouTube Music playlists and albums</small>
+                    </div>
+                </label>
+            </div>
+        </div>
 
-https://www.youtube.com/watch?v=dQw4w9WgXcQ
-https://youtu.be/dQw4w9WgXcQ
-dQw4w9WgXcQ
-
-You can paste:
-• Full YouTube URLs
-• Short youtu.be URLs  
-• Video IDs only
-• Multiple URLs (one per line)"
-                required
-            ></textarea>
+        <div class="form-group" id="url-input-group">
+            <label for="urls" class="form-label" id="urls-label">
+                <i class="fas fa-link"></i> YouTube URLs
+            </label>
+            <textarea name="urls" id="urls" class="form-textarea"
+                      placeholder="Paste YouTube URLs here (one per line)..."></textarea>
+            <div class="help-text" id="help-content">
+                Supported formats: Individual video URLs, playlist URLs, YouTube Music playlist URLs
+            </div>
+        </div>
+        
+        <div class="form-group collection-name-group" id="collection-name-group">
+            <label for="collection_name" class="form-label">
+                <i class="fas fa-folder"></i> Collection Name
+            </label>
+            <input type="text" name="collection_name" id="collection_name" class="form-input"
+                   placeholder="Enter a name for this collection...">
             <div class="help-text">
-                Paste your saved YouTube music URLs here. You can use any YouTube URL format or just the video ID.
+                This will group all imported tracks under a single collection
+            </div>
+            <div class="collection-info" id="collection-info">
+                <strong>Collection Mode:</strong> All imported tracks will be grouped into a single collection with the name you specify above.
             </div>
         </div>
         
         <div class="form-group">
             <label class="form-checkbox">
-                <input type="checkbox" id="updateExisting" name="update_existing">
-                <span>Update existing playlists with new metadata</span>
+                <input type="checkbox" name="update_existing" id="update_existing">
+                Update existing tracks with new metadata
             </label>
             <div class="help-text">
-                Check this box to update playlists you've already imported with fresh metadata from YouTube.
+                If checked, tracks that already exist will be updated with fresh metadata from YouTube
             </div>
         </div>
         
-        <div class="text-center">
-            <button type="submit" class="btn-import" id="importBtn">
-                Import Music
+        <div class="form-group">
+            <button type="submit" class="btn-import" id="submitBtn">
+                <i class="fas fa-download"></i> <span id="submit-text">Import Music</span>
             </button>
         </div>
     </form>
-    
+
     <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p>Importing your music... This may take a while for many URLs.</p>
+        <p>Importing your music... This may take a while for playlists with many videos.</p>
     </div>
     
-    <div id="results" class="results-container" style="display: none;">
+    <div id="results" class="results-container results-display">
         <h3 class="text-white mb-3">Import Results</h3>
         <div id="summary"></div>
         <div id="resultsList"></div>
@@ -256,17 +104,79 @@ You can paste:
 
 {% block extra_js %}
 <script>
+// Handle import mode changes
+document.querySelectorAll('input[name="import_mode"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        updateUIForMode(this.value);
+    });
+});
+
+function updateUIForMode(mode) {
+    const collectionGroup = document.getElementById('collection-name-group');
+    const urlsLabel = document.getElementById('urls-label');
+    const helpContent = document.getElementById('help-content');
+    const submitText = document.getElementById('submit-text');
+    const textarea = document.getElementById('urls');
+    
+    switch(mode) {
+        case 'individual':
+            collectionGroup.style.display = 'none';
+            urlsLabel.textContent = 'YouTube URLs';
+            helpContent.textContent = 'Supported formats: Full YouTube URLs, youtu.be short links, direct video IDs, and YouTube Music URLs';
+            submitText.textContent = 'Import Music';
+            textarea.placeholder = `Paste YouTube URLs here, one per line:
+
+Individual Videos:
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+https://youtu.be/dQw4w9WgXcQ
+dQw4w9WgXcQ
+
+YouTube Music:
+https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
+            break;
+            
+        case 'playlist':
+            collectionGroup.style.display = 'block';
+            urlsLabel.textContent = 'YouTube Playlist URLs';
+            helpContent.textContent = 'Paste YouTube playlist URLs. All videos in each playlist will be imported.';
+            submitText.textContent = 'Import Playlists';
+            textarea.placeholder = `Paste YouTube playlist URLs here, one per line:
+
+https://www.youtube.com/playlist?list=PLrALGJVf-8p0...
+https://youtube.com/playlist?list=PLrALGJVf-8p0...`;
+            break;
+            
+        case 'youtube_music':
+            collectionGroup.style.display = 'block';
+            urlsLabel.textContent = 'YouTube Music URLs';
+            helpContent.textContent = 'Import from YouTube Music playlists, albums, or individual tracks';
+            submitText.textContent = 'Import from YouTube Music';
+            textarea.placeholder = `Paste YouTube Music URLs here, one per line:
+
+Playlists:
+https://music.youtube.com/playlist?list=RDCLAK5uy_k...
+
+Albums:
+https://music.youtube.com/browse/MPREb_...
+
+Individual tracks:
+https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
+            break;
+    }
+}
+
+// Form submission
 document.getElementById('importForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-    const importBtn = document.getElementById('importBtn');
+    const submitBtn = document.getElementById('submitBtn');
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
     
     // Show loading state
-    importBtn.disabled = true;
-    importBtn.textContent = 'Importing...';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
     loading.classList.add('active');
     results.style.display = 'none';
     
@@ -282,7 +192,7 @@ document.getElementById('importForm').addEventListener('submit', async function(
         const data = await response.json();
         
         if (data.success) {
-            displayResults(data.results, data.summary);
+            displayResults(data.results, data.summary, data.collection);
         } else {
             alert('Error: ' + data.error);
         }
@@ -291,21 +201,33 @@ document.getElementById('importForm').addEventListener('submit', async function(
         alert('Network error: ' + error.message);
     } finally {
         // Hide loading state
-        importBtn.disabled = false;
-        importBtn.textContent = 'Import Music';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-download"></i> <span id="submit-text">Import Music</span>';
         loading.classList.remove('active');
+        updateUIForMode(document.querySelector('input[name="import_mode"]:checked').value);
     }
 });
 
-function displayResults(results, summary) {
+function displayResults(results, summary, collectionName) {
     const resultsContainer = document.getElementById('results');
     const summaryDiv = document.getElementById('summary');
     const resultsListDiv = document.getElementById('resultsList');
     
     // Create summary
-    summaryDiv.innerHTML = `
+    let summaryHTML = `
         <div class="summary-card">
             <h4>Import Summary</h4>
+    `;
+    
+    if (collectionName) {
+        summaryHTML += `
+            <div class="collection-info">
+                <strong>Collection:</strong> ${collectionName}
+            </div>
+        `;
+    }
+    
+    summaryHTML += `
             <div class="summary-stats">
                 <div class="summary-stat">
                     <span class="summary-number">${summary.created}</span>
@@ -326,6 +248,7 @@ function displayResults(results, summary) {
             </div>
         </div>
     `;
+    summaryDiv.innerHTML = summaryHTML;
     
     // Create results list
     resultsListDiv.innerHTML = results.map(result => {
@@ -361,14 +284,16 @@ function displayResults(results, summary) {
                     <div class="result-title">
                         ${statusText}: ${result.title || result.message || 'Unknown'}
                     </div>
-                    <div class="result-url">${result.url}</div>
+                    <div class="result-url">${result.url || result.video_id || ''}</div>
                 </div>
             </div>
         `;
     }).join('');
     
     resultsContainer.style.display = 'block';
-    resultsContainer.scrollIntoView({ behavior: 'smooth' });
 }
+
+// Initialize UI
+updateUIForMode('individual');
 </script>
 {% endblock %} 
