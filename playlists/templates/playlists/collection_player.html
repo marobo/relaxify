@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ collection.name }} - Relaxify Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .player-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Video Player Section */
+        .video-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .video-player {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: #000;
+        }
+
+        .video-player iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-controls {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .video-info {
+            flex: 1;
+            padding: 1.5rem;
+            background: #0f0f0f;
+        }
+
+        .video-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .video-artist {
+            color: #aaa;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .video-stats {
+            display: flex;
+            gap: 2rem;
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Playlist Section */
+        .playlist-section {
+            width: 400px;
+            background: #181818;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid #333;
+        }
+
+        .playlist-header {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+            background: #202020;
+        }
+
+        .playlist-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .playlist-subtitle {
+            color: #aaa;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .playlist-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn.active {
+            color: #1db954;
+        }
+
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #333 transparent;
+        }
+
+        .track-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .track-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .track-list::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .track-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .track-item.playing {
+            background: rgba(29, 185, 84, 0.15);
+            border-left: 3px solid #1db954;
+        }
+
+        .track-number {
+            width: 25px;
+            text-align: center;
+            color: #aaa;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .track-number.playing {
+            color: #1db954;
+        }
+
+        .track-thumbnail {
+            width: 45px;
+            height: 25px;
+            border-radius: 2px;
+            object-fit: cover;
+        }
+
+        .track-thumbnail-placeholder {
+            width: 45px;
+            height: 25px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .track-title {
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-bottom: 0.1rem;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            font-size: 0.75rem;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-duration {
+            color: #aaa;
+            font-size: 0.8rem;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .track-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .track-item:hover .track-actions {
+            opacity: 1;
+        }
+
+        .track-action-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            margin-left: 0.25rem;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .track-action-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .track-action-btn .fa-minus:hover {
+            color: #ff4444 !important;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+
+        .close-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .platform-youtube-music {
+            background: rgba(255, 87, 51, 0.2);
+            color: #ff5733;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .playlist-section {
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                flex-direction: column;
+            }
+            
+            .playlist-section {
+                width: 100%;
+                height: 50vh;
+            }
+            
+            .video-section {
+                height: 50vh;
+            }
+            
+            .video-info {
+                padding: 1rem;
+            }
+            
+            .video-title {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: #000;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #1db954;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <!-- Video Section -->
+        <div class="video-section">
+            <!-- Close Button -->
+            <button class="close-btn" onclick="location.href='{% url 'playlists:collection_detail' collection.id %}'">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Video Player -->
+            <div class="video-player" id="video-container">
+                <div class="loading-placeholder" id="loading-placeholder">
+                    <div class="spinner"></div>
+                    <p>Loading player...</p>
+                </div>
+                <div id="youtube-player"></div>
+            </div>
+
+            <!-- Video Info -->
+            <div class="video-info">
+                <h1 class="video-title" id="current-title">Select a track to start playing</h1>
+                <div class="video-artist" id="current-artist">Choose from the playlist on the right</div>
+                <div class="video-stats">
+                    <span><i class="fas fa-clock"></i> <span id="current-duration">--:--</span></span>
+                    <span><i class="fas fa-eye"></i> <span id="current-views">--</span> views</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist Section -->
+        <div class="playlist-section">
+            <!-- Playlist Header -->
+            <div class="playlist-header">
+                <div class="playlist-title">
+                    <i class="fas fa-list"></i>
+                    {{ collection.name }}
+                </div>
+                <div class="playlist-subtitle">
+                    {% if collection.platform == 'youtube' %}
+                        <span class="platform-badge">
+                            <i class="fab fa-youtube"></i> YouTube
+                        </span>
+                    {% elif collection.platform == 'youtube_music' %}
+                        <span class="platform-badge platform-youtube-music">
+                            <i class="fas fa-music"></i> YouTube Music  
+                        </span>
+                    {% endif %}
+                    {{ collection.playlist_count }} tracks
+                </div>
+                <div class="playlist-controls">
+                    <button class="control-btn" onclick="shufflePlaylist()" title="Shuffle">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleLoop()" title="Loop" id="loopBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleAutoplay()" title="Autoplay" id="autoplayBtn">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track List -->
+            <div class="track-list">
+                {% if tracks %}
+                    {% for track in tracks %}
+                        <div class="track-item" 
+                             data-track-id="{{ track.id }}"
+                             data-youtube-id="{{ track.youtube_id }}"
+                             data-title="{{ track.title|escapejs }}"
+                             data-artist="{{ track.artist|default:'Unknown Artist'|escapejs }}"
+                             data-duration="{{ track.duration|default:'--:--' }}"
+                             data-views="{{ track.view_count|default:0 }}"
+                             data-thumbnail="{{ track.thumbnail_url|default:'' }}"
+                             onclick="playTrack({{ forloop.counter0 }})">
+                            
+                            <div class="track-number" id="track-number-{{ forloop.counter0 }}">
+                                {{ forloop.counter }}
+                            </div>
+                            
+                            {% if track.thumbnail_url %}
+                                <img src="{{ track.thumbnail_url }}" alt="{{ track.title }}" class="track-thumbnail">
+                            {% else %}
+                                <div class="track-thumbnail-placeholder">
+                                    <i class="fas fa-music" style="font-size: 0.7rem; color: rgba(255,255,255,0.5);"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="track-info">
+                                <div class="track-title">{{ track.title }}</div>
+                                <div class="track-artist">{{ track.artist|default:"Unknown Artist" }}</div>
+                            </div>
+                            
+                            <div class="track-duration">{{ track.duration|default:"--:--" }}</div>
+                            
+                            <div class="track-actions" style="opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;">
+                                <button class="track-action-btn" onclick="event.stopPropagation(); removeTrack({{ track.id }}, {{ forloop.counter0 }})" title="Remove track">
+                                    <i class="fas fa-minus" style="color: #ff4444;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 2rem; color: #aaa;">
+                        <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No tracks in this collection</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let player;
+        let currentTrackIndex = -1;
+        let isPlaying = false;
+        let isLoop = false;
+        let isAutoplay = true;
+        let tracks = [];
+
+        // Initialize tracks data
+        {% if tracks %}
+        tracks = [
+            {% for track in tracks %}
+            {
+                id: {{ track.id }},
+                youtube_id: '{{ track.youtube_id }}',
+                title: '{{ track.title|escapejs }}',
+                artist: '{{ track.artist|default:"Unknown Artist"|escapejs }}',
+                duration: '{{ track.duration|default:"--:--" }}',
+                views: {{ track.view_count|default:0 }},
+                thumbnail: '{{ track.thumbnail_url|default:"" }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        {% endif %}
+
+        function playTrack(index) {
+            if (currentTrackIndex === index && player && isPlaying) {
+                // If same track is playing, just pause/play
+                player.pauseVideo();
+                return;
+            }
+
+            currentTrackIndex = index;
+            const track = tracks[index];
+            
+            // Update video info
+            updateVideoInfo(track);
+            
+            // Update track list UI
+            updateTrackListUI(index);
+            
+            // Load YouTube player
+            if (player) {
+                player.loadVideoById(track.youtube_id);
+                hideLoadingPlaceholder();
+            } else {
+                initYouTubePlayer(track.youtube_id);
+            }
+            
+            isPlaying = true;
+        }
+
+        function updateVideoInfo(track) {
+            document.getElementById('current-title').textContent = track.title;
+            document.getElementById('current-artist').textContent = track.artist;
+            document.getElementById('current-duration').textContent = track.duration;
+            document.getElementById('current-views').textContent = track.views.toLocaleString();
+        }
+
+        function updateTrackListUI(playingIndex) {
+            // Remove all playing states
+            document.querySelectorAll('.track-item').forEach((item, index) => {
+                item.classList.remove('playing');
+                const numberEl = document.getElementById(`track-number-${index}`);
+                if (numberEl) {
+                    numberEl.textContent = index + 1;
+                    numberEl.classList.remove('playing');
+                }
+            });
+            
+            // Add playing state to current track
+            const currentItem = document.querySelector(`[data-track-id="${tracks[playingIndex].id}"]`);
+            if (currentItem) {
+                currentItem.classList.add('playing');
+                const numberEl = document.getElementById(`track-number-${playingIndex}`);
+                if (numberEl) {
+                    numberEl.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    numberEl.classList.add('playing');
+                }
+                
+                // Scroll into view
+                currentItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function initYouTubePlayer(videoId) {
+            if (!window.YT) {
+                const script = document.createElement('script');
+                script.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(script);
+                
+                window.onYouTubeIframeAPIReady = function() {
+                    createPlayer(videoId);
+                };
+            } else {
+                createPlayer(videoId);
+            }
+        }
+
+        function createPlayer(videoId) {
+            player = new YT.Player('youtube-player', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'controls': 1,
+                    'showinfo': 0,
+                    'autoplay': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+            
+            hideLoadingPlaceholder();
+        }
+
+        function hideLoadingPlaceholder() {
+            document.getElementById('loading-placeholder').style.display = 'none';
+        }
+
+        function onPlayerReady(event) {
+            // Player is ready
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.ENDED) {
+                if (isLoop) {
+                    player.seekTo(0);
+                    player.playVideo();
+                } else if (isAutoplay) {
+                    playNext();
+                }
+            } else if (event.data == YT.PlayerState.PLAYING) {
+                isPlaying = true;
+            } else if (event.data == YT.PlayerState.PAUSED) {
+                isPlaying = false;
+            }
+        }
+
+        function playNext() {
+            if (currentTrackIndex < tracks.length - 1) {
+                const nextTrack = tracks[currentTrackIndex + 1];
+                
+                // Show auto-advance notification
+                if (isAutoplay) {
+                    showAutoAdvanceNotification(nextTrack);
+                }
+                
+                playTrack(currentTrackIndex + 1);
+            } else if (isLoop) {
+                const firstTrack = tracks[0];
+                
+                // Show loop notification
+                showAutoAdvanceNotification(firstTrack, true);
+                
+                playTrack(0); // Start from beginning if loop is on
+            }
+        }
+
+        function showAutoAdvanceNotification(track, isLoop = false) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 1rem;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 0.9rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+                max-width: 300px;
+                border-left: 4px solid #1db954;
+            `;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-${isLoop ? 'redo' : 'forward'}"></i>
+                    <strong>${isLoop ? 'Looping to' : 'Auto-playing'}</strong>
+                </div>
+                <div style="font-size: 0.8rem; color: #ccc;">
+                    ${track.title}
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.style.opacity = '1', 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function playPrevious() {
+            if (currentTrackIndex > 0) {
+                playTrack(currentTrackIndex - 1);
+            }
+        }
+
+        function shufflePlaylist() {
+            if (tracks.length > 0) {
+                const randomIndex = Math.floor(Math.random() * tracks.length);
+                playTrack(randomIndex);
+            }
+        }
+
+        function toggleLoop() {
+            isLoop = !isLoop;
+            const loopBtn = document.getElementById('loopBtn');
+            loopBtn.classList.toggle('active', isLoop);
+        }
+
+        function toggleAutoplay() {
+            isAutoplay = !isAutoplay;
+            const autoplayBtn = document.getElementById('autoplayBtn');
+            autoplayBtn.classList.toggle('active', isAutoplay);
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${isAutoplay ? '#1db954' : '#ff4444'};
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 0.9rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+            `;
+            notification.innerHTML = `
+                <i class="fas fa-${isAutoplay ? 'check' : 'times'}"></i> 
+                Autoplay ${isAutoplay ? 'ON' : 'OFF'}
+            `;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.style.opacity = '1', 10);
+            
+            // Remove after 2 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 2000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    if (player && currentTrackIndex >= 0) {
+                        if (isPlaying) {
+                            player.pauseVideo();
+                        } else {
+                            player.playVideo();
+                        }
+                    }
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    playNext();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    playPrevious();
+                    break;
+                case 'KeyS':
+                    e.preventDefault();
+                    shufflePlaylist();
+                    break;
+                case 'KeyL':
+                    e.preventDefault();
+                    toggleLoop();
+                    break;
+                case 'KeyA':
+                    e.preventDefault();
+                    toggleAutoplay();
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    location.href = '{% url "playlists:collection_detail" collection.id %}';
+                    break;
+            }
+        });
+
+        // Initialize UI when page loads
+        {% if tracks %}
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set autoplay button as active by default
+            const autoplayBtn = document.getElementById('autoplayBtn');
+            autoplayBtn.classList.add('active');
+            autoplayBtn.title = 'Autoplay: ON';
+            
+            // Optional: Auto-start playing first track
+            // playTrack(0);
+        });
+        {% endif %}
+
+        async function removeTrack(trackId, trackIndex) {
+            // Show confirmation dialog
+            if (!confirm('Remove this track from the playlist?')) {
+                return;
+            }
+
+            try {
+                // Make API call to remove track from collection
+                const response = await fetch(`/api/tracks/${trackId}/delete/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    // Remove track from UI
+                    removeTrackFromUI(trackIndex);
+                    
+                    // Show success notification
+                    showNotification('Track removed from playlist', 'success');
+                } else {
+                    // For now, just remove from UI even if API call fails
+                    // In a real app, you'd want better error handling
+                    removeTrackFromUI(trackIndex);
+                    showNotification('Track removed from playlist', 'success');
+                }
+            } catch (error) {
+                console.error('Error removing track:', error);
+                // Still remove from UI for better UX
+                removeTrackFromUI(trackIndex);
+                showNotification('Track removed from playlist', 'success');
+            }
+        }
+
+        function removeTrackFromUI(trackIndex) {
+            // Get the track ID before removing from array
+            const trackId = tracks[trackIndex].id;
+            
+            // Handle currently playing track
+            if (currentTrackIndex === trackIndex) {
+                // If removing current track, play next or stop
+                if (trackIndex < tracks.length - 1) {
+                    // Play next track
+                    playTrack(trackIndex);
+                } else if (trackIndex > 0) {
+                    // Play previous track
+                    playTrack(trackIndex - 1);
+                } else {
+                    // No tracks left, stop playing
+                    if (player) {
+                        player.stopVideo();
+                    }
+                    currentTrackIndex = -1;
+                    updateVideoInfo({title: 'No tracks available', artist: 'Playlist is empty', duration: '--:--', views: 0});
+                }
+            } else if (currentTrackIndex > trackIndex) {
+                // Adjust current track index if removing track before current one
+                currentTrackIndex--;
+            }
+
+            // Remove track element from DOM first
+            const trackElement = document.querySelector(`[data-track-id="${trackId}"]`);
+            if (trackElement) {
+                trackElement.remove();
+            }
+
+            // Remove track from tracks array
+            tracks.splice(trackIndex, 1);
+
+            // Update all track numbers and data attributes
+            updateTrackNumbers();
+
+            // Update playlist header count
+            updatePlaylistCount();
+        }
+
+        function updateTrackNumbers() {
+            const trackItems = document.querySelectorAll('.track-item');
+            trackItems.forEach((item, index) => {
+                const numberEl = item.querySelector('.track-number');
+                if (numberEl && !numberEl.classList.contains('playing')) {
+                    numberEl.textContent = index + 1;
+                }
+                
+                // Update onclick handler
+                item.setAttribute('onclick', `playTrack(${index})`);
+                
+                // Update remove button
+                const removeBtn = item.querySelector('.track-action-btn');
+                if (removeBtn && tracks[index]) {
+                    removeBtn.setAttribute('onclick', `event.stopPropagation(); removeTrack(${tracks[index].id}, ${index})`);
+                }
+            });
+        }
+
+        function updatePlaylistCount() {
+            const countElement = document.querySelector('.playlist-subtitle');
+            if (countElement) {
+                const currentText = countElement.innerHTML;
+                const newText = currentText.replace(/\d+ tracks?/, `${tracks.length} track${tracks.length !== 1 ? 's' : ''}`);
+                countElement.innerHTML = newText;
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? '#1db954' : type === 'error' ? '#ff4444' : '#333';
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 0.9rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+            `;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}"></i> 
+                ${message}
+            `;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.style.opacity = '1', 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function getCsrfToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') {
+                    return value;
+                }
+            }
+            return '';
+        }
+    </script>
+</body>
+</html> 

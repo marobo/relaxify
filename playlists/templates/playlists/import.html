@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import YouTube Music - Relaxify{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block content %}
+<div class="import-container">
+    <h1 class="text-center mb-4">Import Your YouTube Music</h1>
+    <p class="text-center mb-4 import-description">
+        Import individual videos, entire playlists, or YouTube Music collections
+    </p>
+    
+    <form id="importForm" class="import-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-music"></i> Import Mode
+            </label>
+            <div class="import-mode-options">
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="individual" checked>
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>Individual Videos</strong>
+                        <small>Import individual YouTube videos or YouTube Music tracks</small>
+                    </div>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="playlist">
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>YouTube Playlists</strong>
+                        <small>Import entire YouTube playlists with all videos</small>
+                    </div>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="import_mode" value="youtube_music">
+                    <span class="radio-custom"></span>
+                    <div class="radio-content">
+                        <strong>YouTube Music</strong>
+                        <small>Import from YouTube Music playlists and albums</small>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group" id="url-input-group">
+            <label for="urls" class="form-label" id="urls-label">
+                <i class="fas fa-link"></i> YouTube URLs
+            </label>
+            <textarea name="urls" id="urls" class="form-textarea"
+                      placeholder="Paste YouTube URLs here (one per line)..."></textarea>
+            <div class="help-text" id="help-content">
+                Supported formats: Individual video URLs, playlist URLs, YouTube Music playlist URLs
+            </div>
+        </div>
+        
+        <div class="form-group collection-name-group" id="collection-name-group">
+            <label for="collection_name" class="form-label">
+                <i class="fas fa-folder"></i> Collection Name
+            </label>
+            <input type="text" name="collection_name" id="collection_name" class="form-input"
+                   placeholder="Enter a name for this collection...">
+            <div class="help-text">
+                This will group all imported tracks under a single collection
+            </div>
+            <div class="collection-info" id="collection-info">
+                <strong>Collection Mode:</strong> All imported tracks will be grouped into a single collection with the name you specify above.
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-checkbox">
+                <input type="checkbox" name="update_existing" id="update_existing">
+                Update existing tracks with new metadata
+            </label>
+            <div class="help-text">
+                If checked, tracks that already exist will be updated with fresh metadata from YouTube
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn-import" id="submitBtn">
+                <i class="fas fa-download"></i> <span id="submit-text">Import Music</span>
+            </button>
+        </div>
+    </form>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Importing your music... This may take a while for playlists with many videos.</p>
+    </div>
+    
+    <div id="results" class="results-container results-display">
+        <h3 class="text-white mb-3">Import Results</h3>
+        <div id="summary"></div>
+        <div id="resultsList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Handle import mode changes
+document.querySelectorAll('input[name="import_mode"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        updateUIForMode(this.value);
+    });
+});
+
+function updateUIForMode(mode) {
+    const collectionGroup = document.getElementById('collection-name-group');
+    const urlsLabel = document.getElementById('urls-label');
+    const helpContent = document.getElementById('help-content');
+    const submitText = document.getElementById('submit-text');
+    const textarea = document.getElementById('urls');
+    
+    switch(mode) {
+        case 'individual':
+            collectionGroup.style.display = 'none';
+            urlsLabel.textContent = 'YouTube URLs';
+            helpContent.textContent = 'Supported formats: Full YouTube URLs, youtu.be short links, direct video IDs, and YouTube Music URLs';
+            submitText.textContent = 'Import Music';
+            textarea.placeholder = `Paste YouTube URLs here, one per line:
+
+Individual Videos:
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+https://youtu.be/dQw4w9WgXcQ
+dQw4w9WgXcQ
+
+YouTube Music:
+https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
+            break;
+            
+        case 'playlist':
+            collectionGroup.style.display = 'block';
+            urlsLabel.textContent = 'YouTube Playlist URLs';
+            helpContent.textContent = 'Paste YouTube playlist URLs. All videos in each playlist will be imported.';
+            submitText.textContent = 'Import Playlists';
+            textarea.placeholder = `Paste YouTube playlist URLs here, one per line:
+
+https://www.youtube.com/playlist?list=PLrALGJVf-8p0...
+https://youtube.com/playlist?list=PLrALGJVf-8p0...`;
+            break;
+            
+        case 'youtube_music':
+            collectionGroup.style.display = 'block';
+            urlsLabel.textContent = 'YouTube Music URLs';
+            helpContent.textContent = 'Import from YouTube Music playlists, albums, or individual tracks';
+            submitText.textContent = 'Import from YouTube Music';
+            textarea.placeholder = `Paste YouTube Music URLs here, one per line:
+
+Playlists:
+https://music.youtube.com/playlist?list=RDCLAK5uy_k...
+
+Albums:
+https://music.youtube.com/browse/MPREb_...
+
+Individual tracks:
+https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
+            break;
+    }
+}
+
+// Form submission
+document.getElementById('importForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('submitBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+    loading.classList.add('active');
+    results.style.display = 'none';
+    
+    try {
+        const response = await fetch('{% url "playlists:import" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data.results, data.summary, data.collection);
+        } else {
+            alert('Error: ' + data.error);
+        }
+        
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    } finally {
+        // Hide loading state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-download"></i> <span id="submit-text">Import Music</span>';
+        loading.classList.remove('active');
+        updateUIForMode(document.querySelector('input[name="import_mode"]:checked').value);
+    }
+});
+
+function displayResults(results, summary, collectionName) {
+    const resultsContainer = document.getElementById('results');
+    const summaryDiv = document.getElementById('summary');
+    const resultsListDiv = document.getElementById('resultsList');
+    
+    // Create summary
+    let summaryHTML = `
+        <div class="summary-card">
+            <h4>Import Summary</h4>
+    `;
+    
+    if (collectionName) {
+        summaryHTML += `
+            <div class="collection-info">
+                <strong>Collection:</strong> ${collectionName}
+            </div>
+        `;
+    }
+    
+    summaryHTML += `
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.created}</span>
+                    <span>Created</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.updated}</span>
+                    <span>Updated</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.errors}</span>
+                    <span>Errors</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-number">${summary.total}</span>
+                    <span>Total</span>
+                </div>
+            </div>
+        </div>
+    `;
+    summaryDiv.innerHTML = summaryHTML;
+    
+    // Create results list
+    resultsListDiv.innerHTML = results.map(result => {
+        let statusClass, statusIcon, statusText;
+        
+        switch (result.status) {
+            case 'created':
+                statusClass = 'result-success';
+                statusIcon = '✅';
+                statusText = 'Created';
+                break;
+            case 'updated':
+                statusClass = 'result-success';
+                statusIcon = '🔄';
+                statusText = 'Updated';
+                break;
+            case 'exists':
+                statusClass = 'result-warning';
+                statusIcon = '⚠️';
+                statusText = 'Already exists';
+                break;
+            case 'error':
+                statusClass = 'result-error';
+                statusIcon = '❌';
+                statusText = 'Error';
+                break;
+        }
+        
+        return `
+            <div class="result-item ${statusClass}">
+                <span class="result-icon">${statusIcon}</span>
+                <div class="result-content">
+                    <div class="result-title">
+                        ${statusText}: ${result.title || result.message || 'Unknown'}
+                    </div>
+                    <div class="result-url">${result.url || result.video_id || ''}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    resultsContainer.style.display = 'block';
+}
+
+// Initialize UI
+updateUIForMode('individual');
+</script>
+{% endblock %} 
