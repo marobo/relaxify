@@ -360,22 +360,6 @@
             height: 28px;
         }
     }
-
-    .empty-tracks-center {
-        text-align: center;
-        padding: 3rem;
-        color: #aaa;
-    }
-
-    .empty-tracks-large-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-
-    .import-btn-margin {
-        margin-top: 1rem;
-    }
 </style>
 {% endblock %}
 
@@ -386,7 +370,7 @@
         <button class="close-btn" onclick="location.href='{% url 'playlists:home' %}'">
             <i class="fas fa-times"></i>
         </button>
-        <div class="flex-one">
+        <div style="flex: 1;">
             <h1 class="playlist-title">{{ collection.name }}</h1>
             <div class="playlist-subtitle">
                 {% if collection.platform == 'youtube' %}
@@ -405,12 +389,6 @@
             </div>
         </div>
         <div class="control-buttons">
-            <button class="control-btn save-offline-btn" title="Save Offline" data-collection-id="{{ collection.id }}">
-                <i class="fas fa-download"></i>
-            </button>
-            <button class="control-btn download-audio-btn" title="Download Audio">
-                <i class="fas fa-music"></i>
-            </button>
             <a href="{% url 'playlists:collection_player' collection.id %}" class="control-btn" title="Open Full Player">
                 <i class="fas fa-external-link-alt"></i>
             </a>
@@ -425,14 +403,14 @@
 
     {% if tracks %}
         <!-- YouTube Player -->
-        <div class="youtube-player youtube-player-hidden" id="youtube-player-container">
+        <div class="youtube-player" id="youtube-player-container" style="display: none;">
             <div id="youtube-player"></div>
         </div>
 
         <!-- Current Track Display -->
         <div class="current-track" id="current-track-display">
             <div class="current-thumbnail-placeholder" id="current-thumbnail">
-                <i class="fas fa-music current-thumbnail-music-icon"></i>
+                <i class="fas fa-music" style="font-size: 1.5rem; color: rgba(255,255,255,0.7);"></i>
                 <div class="play-overlay">
                     <i class="fas fa-play"></i>
                 </div>
@@ -464,7 +442,7 @@
                         <img src="{{ track.thumbnail_url }}" alt="{{ track.title }}" class="track-thumbnail">
                     {% else %}
                         <div class="track-thumbnail-placeholder">
-                            <i class="fas fa-music track-thumbnail-placeholder-small"></i>
+                            <i class="fas fa-music" style="font-size: 0.8rem; color: rgba(255,255,255,0.5);"></i>
                         </div>
                     {% endif %}
                     
@@ -496,11 +474,11 @@
             • Added {{ collection.created|date:"M d, Y" }}
         </div>
     {% else %}
-        <div class="empty-tracks-center">
-            <i class="fas fa-music empty-tracks-large-icon"></i>
+        <div style="text-align: center; padding: 3rem; color: #aaa;">
+            <i class="fas fa-music" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
             <h3>No tracks in this collection</h3>
             <p>This collection is empty. Try importing some music!</p>
-            <a href="{% url 'playlists:import' %}" class="btn btn-primary import-btn-margin">
+            <a href="{% url 'playlists:import' %}" class="btn btn-primary" style="margin-top: 1rem;">
                 <i class="fas fa-plus"></i> Import Music
             </a>
         </div>
@@ -560,14 +538,14 @@ function updateCurrentTrackDisplay(title, artist, duration, thumbnail) {
     const thumbnailContainer = document.getElementById('current-thumbnail');
     if (thumbnail) {
         thumbnailContainer.innerHTML = `
-            <img src="${thumbnail}" class="current-track-thumbnail-inline">
+            <img src="${thumbnail}" style="width: 120px; height: 68px; border-radius: 8px; object-fit: cover;">
             <div class="play-overlay">
                 <i class="fas fa-pause"></i>
             </div>
         `;
     } else {
         thumbnailContainer.innerHTML = `
-            <i class="fas fa-music current-thumbnail-music-icon"></i>
+            <i class="fas fa-music" style="font-size: 1.5rem; color: rgba(255,255,255,0.7);"></i>
             <div class="play-overlay">
                 <i class="fas fa-pause"></i>
             </div>
@@ -747,125 +725,5 @@ document.getElementById('current-track-display').addEventListener('click', funct
         }
     }
 });
-
-// Save for offline functionality
-const saveOfflineBtn = document.querySelector('.save-offline-btn');
-if (saveOfflineBtn) {
-    saveOfflineBtn.addEventListener('click', async function() {
-        const collectionId = this.dataset.collectionId;
-        const icon = this.querySelector('i');
-        const originalIcon = icon.className;
-        
-        // Show loading state
-        icon.className = 'fas fa-spinner fa-spin';
-        this.disabled = true;
-        
-        try {
-            // Fetch collection data and save to IndexedDB
-            const response = await fetch(`/api/collections/${collectionId}/`);
-            const collection = await response.json();
-            
-            // Save to IndexedDB
-            await saveCollectionOffline(collection);
-            
-            // Update UI
-            icon.className = 'fas fa-check';
-            this.style.color = '#1db954';
-            this.title = 'Saved Offline';
-            
-            alert('Collection saved for offline use!');
-            
-        } catch (error) {
-            console.error('Error saving collection offline:', error);
-            icon.className = originalIcon;
-            this.disabled = false;
-            alert('Failed to save collection offline');
-        }
-    });
-}
-
-// Download audio functionality
-const downloadAudioBtn = document.querySelector('.download-audio-btn');
-if (downloadAudioBtn) {
-    downloadAudioBtn.addEventListener('click', async function() {
-        if (currentTrackIndex === -1) {
-            alert('Please select a track first');
-            return;
-        }
-        
-        const currentTrack = tracks[currentTrackIndex];
-        const icon = this.querySelector('i');
-        const originalIcon = icon.className;
-        
-        // Show loading state
-        icon.className = 'fas fa-spinner fa-spin';
-        this.disabled = true;
-        
-        try {
-            const response = await fetch(`/download/${currentTrack.youtube_id}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                icon.className = 'fas fa-check';
-                this.style.color = '#1db954';
-                alert(`Audio downloaded: ${currentTrack.title}`);
-            } else {
-                throw new Error(result.error);
-            }
-            
-        } catch (error) {
-            console.error('Error downloading audio:', error);
-            icon.className = originalIcon;
-            this.disabled = false;
-            alert('Failed to download audio: ' + error.message);
-        }
-    });
-}
-
-// IndexedDB functions
-async function saveCollectionOffline(collection) {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('relaxify-db', 1);
-        
-        request.onerror = () => reject(request.error);
-        
-        request.onsuccess = () => {
-            const db = request.result;
-            const transaction = db.transaction(['collections'], 'readwrite');
-            const store = transaction.objectStore('collections');
-            
-            const addRequest = store.put(collection);
-            addRequest.onsuccess = () => resolve();
-            addRequest.onerror = () => reject(addRequest.error);
-        };
-        
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('collections')) {
-                const store = db.createObjectStore('collections', { keyPath: 'id' });
-                store.createIndex('name', 'name', { unique: false });
-            }
-        };
-    });
-}
-
-// CSRF token helper
-function getCsrfToken() {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrftoken') {
-            return value;
-        }
-    }
-    return '';
-}
 </script>
 {% endblock %} 

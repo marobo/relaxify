@@ -367,46 +367,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .empty-tracks-container {
-            text-align: center;
-            padding: 2rem;
-            color: #aaa;
-        }
-
-        .empty-tracks-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
-
-        .auto-advance-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            z-index: 9999;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s;
-            max-width: 300px;
-            border-left: 4px solid #1db954;
-        }
-
-        .auto-advance-notification-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .auto-advance-notification-text {
-            font-size: 0.8rem;
-            color: #ccc;
-        }
     </style>
 </head>
 <body>
@@ -493,7 +453,7 @@
                                 <img src="{{ track.thumbnail_url }}" alt="{{ track.title }}" class="track-thumbnail">
                             {% else %}
                                 <div class="track-thumbnail-placeholder">
-                                    <i class="fas fa-music thumbnail-placeholder-small-icon"></i>
+                                    <i class="fas fa-music" style="font-size: 0.7rem; color: rgba(255,255,255,0.5);"></i>
                                 </div>
                             {% endif %}
                             
@@ -504,16 +464,16 @@
                             
                             <div class="track-duration">{{ track.duration|default:"--:--" }}</div>
                             
-                            <div class="track-actions track-actions-hidden">
+                            <div class="track-actions" style="opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;">
                                 <button class="track-action-btn" onclick="event.stopPropagation(); removeTrack({{ track.id }}, {{ forloop.counter0 }})" title="Remove track">
-                                    <i class="fas fa-minus remove-track-btn"></i>
+                                    <i class="fas fa-minus" style="color: #ff4444;"></i>
                                 </button>
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="empty-tracks-container">
-                        <i class="fas fa-music empty-tracks-icon"></i>
+                    <div style="text-align: center; padding: 2rem; color: #aaa;">
+                        <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
                         <p>No tracks in this collection</p>
                     </div>
                 {% endif %}
@@ -687,13 +647,27 @@
 
         function showAutoAdvanceNotification(track, isLoop = false) {
             const notification = document.createElement('div');
-            notification.className = 'auto-advance-notification';
+            notification.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 1rem;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 0.9rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+                max-width: 300px;
+                border-left: 4px solid #1db954;
+            `;
             notification.innerHTML = `
-                <div class="auto-advance-notification-container">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <i class="fas fa-${isLoop ? 'redo' : 'forward'}"></i>
                     <strong>${isLoop ? 'Looping to' : 'Auto-playing'}</strong>
                 </div>
-                <div class="auto-advance-notification-text">
+                <div style="font-size: 0.8rem; color: #ccc;">
                     ${track.title}
                 </div>
             `;
