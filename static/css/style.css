@@ -367,7 +367,7 @@ body {
     gap: 1rem;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid var(--bs-border-color-translucent);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -375,7 +375,7 @@ body {
 
 .radio-option:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: var(--text-light);
 }
 
 .radio-option input[type="radio"] {
@@ -394,7 +394,7 @@ body {
 .radio-custom {
     width: 20px;
     height: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid var(--bs-border-color-translucent);
     border-radius: 50%;
     position: relative;
     background: transparent;
@@ -426,31 +426,29 @@ body {
 }
 
 .radio-content small {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-light);
     font-size: 0.85rem;
 }
 
 .form-input {
     width: 100%;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid var(--bs-border-color-translucent);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
     color: var(--text-dark);
     font-size: 1rem;
 }
 
 .form-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
 }
 
 .form-textarea {
     width: 100%;
     min-height: 200px;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid var(--bs-border-color-translucent);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
     color: var(--text-dark);
     font-family: monospace;
     font-size: 0.9rem;
@@ -458,7 +456,7 @@ body {
 }
 
 .form-textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-light);
 }
 
 .form-checkbox {
@@ -600,7 +598,7 @@ body {
 }
 
 .help-text {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-light);
     font-size: 0.9rem;
     margin-top: 0.5rem;
     line-height: 1.5;
@@ -612,16 +610,16 @@ body {
     padding: 1rem;
     border-radius: 10px;
     margin-top: 1rem;
-    color: #fff;
+    color: var(--primary-color);
 }
 
 .collection-info strong {
-    color: #667eea;
+    color: var(--primary-color);
 }
 
 /* Import page description text */
 .import-description {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-light);
 }
 
 /* Collection name group */
