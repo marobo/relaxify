@@ -1,0 +1,1526 @@
+/* ================================================
+   RELAXIFY - CONSOLIDATED STYLES
+   ================================================ */
+
+/* ================================================
+   BASE STYLES (from base.html)
+   ================================================ */
+
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #8b5cf6;
+    --accent-color: #06b6d4;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+    --bg-light: #f8fafc;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, var(--bg-light) 0%, #e0e7ff 100%);
+    min-height: 100vh;
+    color: var(--text-dark);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+}
+
+.card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 15px -3px rgba(99, 102, 241, 0.4);
+}
+
+.footer {
+    background: var(--text-dark);
+    color: white;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.install-banner {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    display: none;
+}
+
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #f59e0b;
+    color: white;
+    text-align: center;
+    padding: 0.5rem;
+    z-index: 1000;
+    display: none;
+}
+
+/* ================================================
+   HOME PAGE STYLES (from home.html)
+   ================================================ */
+
+.hero-section {
+    background: linear-gradient(135deg, rgba(103, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.collection-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+}
+
+.collection-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.collection-thumbnail {
+    width: 100%;
+    height: 200px;
+    border-radius: 15px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+}
+
+.collection-placeholder {
+    width: 100%;
+    height: 200px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.collection-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.collection-description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+}
+
+.collection-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.collection-stat {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.platform-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.platform-youtube {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.platform-youtube-music {
+    background: rgba(255, 87, 51, 0.2);
+    color: #ff5733;
+    border: 1px solid rgba(255, 87, 51, 0.3);
+}
+
+.platform-mixed {
+    background: rgba(156, 39, 176, 0.2);
+    color: #9c27b0;
+    border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.track-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.track-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.track-thumbnail {
+    width: 100%;
+    height: 120px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-bottom: 0.75rem;
+}
+
+.track-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.track-artist {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.track-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.75rem;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+}
+
+.import-cta {
+    background: rgba(103, 126, 234, 0.2);
+    border: 2px dashed rgba(103, 126, 234, 0.5);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.import-cta:hover {
+    background: rgba(103, 126, 234, 0.3);
+    border-color: rgba(103, 126, 234, 0.7);
+    transform: translateY(-5px);
+}
+
+.home-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.home-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Collection actions styles for home page */
+.collection-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.collection-action-btn {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Track thumbnail placeholder styles for home page */
+.track-thumbnail-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Large icon styles for home page */
+.large-icon {
+    font-size: 3rem;
+    color: #667eea;
+}
+
+/* ================================================
+   IMPORT PAGE STYLES (from import.html)
+   ================================================ */
+
+.import-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.import-form {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+.import-mode-options {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.radio-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom::after {
+    opacity: 1;
+}
+
+.radio-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    position: relative;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.radio-content {
+    flex: 1;
+    color: #fff;
+}
+
+.radio-content strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.radio-content small {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1rem;
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-family: monospace;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+.form-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+}
+
+.btn-import {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.btn-import:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-import:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.results-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 2rem;
+}
+
+.result-item {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.result-success {
+    background: rgba(46, 160, 67, 0.2);
+    border-left: 4px solid #2ea043;
+}
+
+.result-warning {
+    background: rgba(251, 188, 4, 0.2);
+    border-left: 4px solid #fbbc04;
+}
+
+.result-error {
+    background: rgba(248, 81, 73, 0.2);
+    border-left: 4px solid #f85149;
+}
+
+.result-icon {
+    font-size: 1.2rem;
+}
+
+.result-content {
+    flex: 1;
+    color: #fff;
+}
+
+.result-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.result-url {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-family: monospace;
+}
+
+.summary-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    color: #fff;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.summary-stat {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.summary-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    color: #fff;
+    margin: 2rem 0;
+}
+
+.loading.active {
+    display: block;
+}
+
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 3px solid #fff;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.help-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    line-height: 1.5;
+}
+
+.collection-info {
+    background: rgba(103, 126, 234, 0.2);
+    border: 1px solid rgba(103, 126, 234, 0.4);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    color: #fff;
+}
+
+.collection-info strong {
+    color: #667eea;
+}
+
+/* Import page description text */
+.import-description {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Collection name group */
+.collection-name-group {
+    display: none;
+}
+
+/* Results display */
+.results-display {
+    display: none;
+}
+
+/* ================================================
+   COLLECTION DETAIL PAGE STYLES (from collection_detail.html)
+   ================================================ */
+
+/* Override body for collection detail */
+.collection-detail-body {
+    background: #0f0f0f;
+    color: #fff;
+}
+
+/* Play overlay for current track */
+.play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1rem;
+}
+
+/* Current track modifications */
+.current-thumbnail {
+    position: relative;
+}
+
+/* Current duration styling */
+.current-duration {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.playlist-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #0f0f0f;
+    min-height: 100vh;
+}
+
+.playlist-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+}
+
+.playlist-subtitle {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.shuffle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.shuffle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(180deg);
+}
+
+.current-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.current-track:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.current-track.playing {
+    border: 2px solid #1db954;
+    background: rgba(29, 185, 84, 0.1);
+}
+
+.current-thumbnail {
+    width: 120px;
+    height: 68px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.current-thumbnail-placeholder {
+    width: 120px;
+    height: 68px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.current-info {
+    flex: 1;
+}
+
+.current-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.current-artist {
+    color: #aaa;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.current-meta {
+    display: flex;
+    gap: 1rem;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.track-list {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.track-list-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.track-item.playing {
+    background: rgba(29, 185, 84, 0.1);
+    border-left: 3px solid #1db954;
+}
+
+.track-item:last-child {
+    border-bottom: none;
+}
+
+.track-number {
+    width: 30px;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.track-number.playing {
+    color: #1db954;
+}
+
+.detail-track-thumbnail {
+    width: 60px;
+    height: 34px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.detail-track-thumbnail-placeholder {
+    width: 60px;
+    height: 34px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.detail-track-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.detail-track-artist {
+    font-size: 0.8rem;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-duration {
+    color: #aaa;
+    font-size: 0.85rem;
+    min-width: 45px;
+    text-align: right;
+}
+
+.track-actions {
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.track-item:hover .track-actions {
+    opacity: 1;
+}
+
+.track-action-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+    margin-left: 0.5rem;
+}
+
+.track-action-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.playlist-stats {
+    text-align: center;
+    padding: 1rem;
+    color: #aaa;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    margin-top: 1rem;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.platform-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* YouTube Player Embed Styling */
+.youtube-player {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.youtube-player iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+.youtube-player-display {
+    display: none;
+}
+
+.youtube-player-container {
+    display: none;
+}
+
+/* Empty collection state */
+.empty-collection {
+    text-align: center;
+    padding: 3rem;
+    color: #aaa;
+}
+
+.empty-collection i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* ================================================
+   COLLECTION PLAYER PAGE STYLES (from collection_player.html)
+   ================================================ */
+
+/* Collection player specific body styles */
+.collection-player-body {
+    background: #0f0f0f;
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Universal reset for collection player */
+.collection-player-body * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.player-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Video Player Section */
+.video-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.video-player {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    background: #000;
+}
+
+.video-player iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.video-controls {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.video-info {
+    flex: 1;
+    padding: 1.5rem;
+    background: #0f0f0f;
+}
+
+.video-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.video-artist {
+    color: #aaa;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Sidebar styles for collection player */
+.sidebar {
+    width: 400px;
+    background: #1a1a1a;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-subtitle {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.sidebar-track {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-track:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-track.active {
+    background: rgba(29, 185, 84, 0.2);
+    border-left: 3px solid #1db954;
+}
+
+.sidebar-track-number {
+    width: 20px;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.sidebar-track.active .sidebar-track-number {
+    color: #1db954;
+}
+
+.sidebar-track-thumbnail {
+    width: 50px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.sidebar-track-thumbnail-placeholder {
+    width: 50px;
+    height: 28px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-track-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-track-artist {
+    font-size: 0.75rem;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-track-duration {
+    color: #aaa;
+    font-size: 0.75rem;
+    min-width: 35px;
+    text-align: right;
+}
+
+/* Small music icon */
+.small-music-icon {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Track actions with low opacity */
+.low-opacity-actions {
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+/* Remove button with red color */
+.remove-btn {
+    color: #ff4444;
+}
+
+/* Empty playlist message */
+.empty-playlist {
+    text-align: center;
+    padding: 2rem;
+    color: #aaa;
+}
+
+.empty-playlist i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Player control styles */
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.player-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.player-meta-info {
+    font-size: 0.8rem;
+    color: #ccc;
+}
+
+/* ================================================
+   OFFLINE PAGE STYLES (from offline.html)
+   ================================================ */
+
+.offline-icon {
+    font-size: 5rem;
+}
+
+.offline-playlists {
+    display: none;
+}
+
+/* ================================================
+   RESPONSIVE STYLES
+   ================================================ */
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .playlist-container {
+        padding: 0.5rem;
+    }
+    
+    .current-track {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .current-thumbnail {
+        width: 200px;
+        height: 113px;
+    }
+    
+    .track-item {
+        padding: 0.5rem;
+    }
+    
+    .detail-track-thumbnail {
+        width: 50px;
+        height: 28px;
+    }
+    
+    .player-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: 300px;
+    }
+}
+
+/* ================================================
+   UTILITY CLASSES
+   ================================================ */
+
+/* Small icon utility */
+.icon-small {
+    font-size: 0.8rem;
+}
+
+/* Medium icon utility */
+.icon-medium {
+    font-size: 1.5rem;
+}
+
+/* Large icon utility */
+.icon-large {
+    font-size: 3rem;
+}
+
+/* Flex utilities */
+.flex-1 {
+    flex: 1;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flex-gap-small {
+    gap: 0.5rem;
+}
+
+.flex-gap-medium {
+    gap: 1rem;
+}
+
+/* Display utilities */
+.display-none {
+    display: none;
+}
+
+.display-block {
+    display: block;
+}
+
+.display-flex {
+    display: flex;
+}
+
+/* Text alignment utilities */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+/* Spacing utilities */
+.padding-small {
+    padding: 0.5rem;
+}
+
+.padding-medium {
+    padding: 1rem;
+}
+
+.padding-large {
+    padding: 2rem;
+}
+
+.padding-xl {
+    padding: 3rem;
+}
+
+.margin-top-small {
+    margin-top: 0.5rem;
+}
+
+.margin-top-medium {
+    margin-top: 1rem;
+}
+
+.margin-bottom-small {
+    margin-bottom: 0.5rem;
+}
+
+.margin-bottom-medium {
+    margin-bottom: 1rem;
+}
+
+/* Color utilities */
+.color-primary {
+    color: var(--primary-color);
+}
+
+.color-secondary {
+    color: var(--secondary-color);
+}
+
+.color-muted {
+    color: #aaa;
+}
+
+.color-white {
+    color: #fff;
+}
+
+.color-red {
+    color: #ff4444;
+}
+
+/* Font size utilities */
+.font-small {
+    font-size: 0.7rem;
+}
+
+.font-medium {
+    font-size: 0.8rem;
+}
+
+.font-large {
+    font-size: 1.5rem;
+}
+
+.font-xl {
+    font-size: 2rem;
+}
+
+.font-xxl {
+    font-size: 3rem;
+}
+
+.font-5xl {
+    font-size: 5rem;
+}
+
+/* Opacity utilities */
+.opacity-0 {
+    opacity: 0;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.opacity-70 {
+    opacity: 0.7;
+}
+
+.opacity-100 {
+    opacity: 1;
+}
+
+/* Transition utilities */
+.transition-opacity {
+    transition: opacity 0.2s;
+}
+
+.transition-all {
+    transition: all 0.2s;
+}
+
+/* Text color utilities for light backgrounds */
+.text-fade {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.text-fade-more {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.text-fade-less {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Margin and padding utilities specific to music interface */
+.music-gap {
+    gap: 0.5rem;
+}
+
+.music-gap-large {
+    gap: 1rem;
+}
+
+/* Flex utilities for music layout */
+.music-flex {
+    display: flex;
+    align-items: center;
+}
+
+.music-flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Border radius utilities for music cards */
+.rounded-music {
+    border-radius: 10px;
+}
+
+.rounded-music-large {
+    border-radius: 15px;
+} 
