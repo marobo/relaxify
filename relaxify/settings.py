@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!#y6!osy*uy8wrt^hr^5ga$3x(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.1.194']
+ALLOWED_HOSTS = ['relaxify.pythonanywhere.com']
 
 
 # Application definition
