@@ -142,7 +142,7 @@ def download_audio(request, video_id):
 # Service Worker and PWA endpoints
 def service_worker(request):
     """Serve the service worker file"""
-    return render(request, 'static/sw.js', content_type='application/javascript')
+    return render(request, 'static/js/sw.js', content_type='application/javascript')
 
 
 def manifest(request):
