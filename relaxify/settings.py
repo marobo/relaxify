@@ -11,10 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!#y6!osy*uy8wrt^hr^5ga$3x(kmy4wd!co7sx#jwmpu%!3q73')
+SECRET_KEY = config('SECRET_KEY', default='your-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True)
 
-ALLOWED_HOSTS = ['relaxify.pythonanywhere.com', 'localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=['relaxify.pythonanywhere.com', 'localhost', '127.0.0.1', '0.0.0.0'], cast=Csv())
 
 
 # Application definition
@@ -50,6 +47,8 @@ INSTALLED_APPS = [
     # Local apps
     'playlists',
 ]
+
+YOUTUBE_API_KEY = config('YOUTUBE_API_KEY', default='')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -165,9 +164,9 @@ CORS_ALLOWED_ORIGINS = [
 
 # WebPush settings for push notifications
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": os.getenv('VAPID_PUBLIC_KEY', ''),
-    "VAPID_PRIVATE_KEY": os.getenv('VAPID_PRIVATE_KEY', ''),
-    "VAPID_ADMIN_EMAIL": os.getenv('VAPID_ADMIN_EMAIL', 'admin@relaxify.com')
+    "VAPID_PUBLIC_KEY": config('VAPID_PUBLIC_KEY', default=''),
+    "VAPID_PRIVATE_KEY": config('VAPID_PRIVATE_KEY', default=''),
+    "VAPID_ADMIN_EMAIL": config('VAPID_ADMIN_EMAIL', default='admin@relaxify.com')
 }
 
 # PWA settings

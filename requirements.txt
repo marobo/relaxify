@@ -4,4 +4,3 @@ django-webpush>=0.3.4
 yt-dlp>=2023.7.6
 whitenoise>=6.5.0
 django-cors-headers>=4.2.0
-python-dotenv>=1.0.0 

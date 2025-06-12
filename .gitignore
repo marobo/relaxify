@@ -1,7 +1,3 @@
-db.sqlite3/
-venv/
-.venv/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -25,7 +21,7 @@ media/
 # Environment
 .env
 .venv
-env/
+venv/
 ENV/
 
 # IDE

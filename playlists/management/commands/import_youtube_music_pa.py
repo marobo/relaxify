@@ -2,10 +2,11 @@ from django.core.management.base import BaseCommand, CommandError
 from playlists.models import Playlist
 import yt_dlp
 import re
+import os
 
 
 class Command(BaseCommand):
-    help = 'Import your saved YouTube music into playlists'
+    help = 'Import YouTube music into playlists (PythonAnywhere optimized)'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -23,16 +24,6 @@ class Command(BaseCommand):
             '--update',
             action='store_true',
             help='Update existing playlists with new metadata'
-        )
-        parser.add_argument(
-            '--proxy',
-            type=str,
-            help='Proxy URL to use for requests (e.g., http://proxy:8080)'
-        )
-        parser.add_argument(
-            '--no-proxy',
-            action='store_true',
-            help='Disable proxy usage'
         )
 
     def extract_video_id(self, url):
@@ -69,32 +60,35 @@ class Command(BaseCommand):
         
         return None
 
-    def get_ydl_opts(self, options):
-        """Get yt-dlp options with proxy configuration"""
+    def get_ydl_opts(self):
+        """Get yt-dlp options optimized for PythonAnywhere"""
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
             'extractaudio': False,
             'skip_download': True,
+            'socket_timeout': 60,
+            'retries': 5,
+            'fragment_retries': 5,
+            'file_access_retries': 3,
+            'http_chunk_size': 10485760,
+            'proxy': 'proxy-server.pythonanywhere-services.com:3128',
         }
-        
-        if options.get('no_proxy'):
-            ydl_opts['proxy'] = ''
-        elif options.get('proxy'):
-            ydl_opts['proxy'] = options['proxy']
         
         return ydl_opts
 
-    def get_playlist_videos(self, playlist_id, options):
+    def get_playlist_videos(self, playlist_id):
         """Fetch all video IDs from a playlist"""
         try:
             playlist_url = (
                 f"https://www.youtube.com/playlist?list={playlist_id}"
             )
-            ydl_opts = self.get_ydl_opts(options)
+            ydl_opts = self.get_ydl_opts()
             ydl_opts['extract_flat'] = True
+            ydl_opts['playlistend'] = 100  # Limit to first 100 videos
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                self.stdout.write("Fetching playlist via PythonAnywhere proxy...")
                 info = ydl.extract_info(playlist_url, download=False)
                 
                 if 'entries' not in info:
@@ -115,11 +109,11 @@ class Command(BaseCommand):
             )
             return []
 
-    def get_video_info(self, video_id, options):
+    def get_video_info(self, video_id):
         """Fetch video metadata using yt-dlp"""
         try:
             youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-            ydl_opts = self.get_ydl_opts(options)
+            ydl_opts = self.get_ydl_opts()
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(youtube_url, download=False)
@@ -156,6 +150,9 @@ class Command(BaseCommand):
             return None
 
     def handle(self, *args, **options):
+        self.stdout.write("=== PythonAnywhere YouTube Import ===")
+        self.stdout.write("Using PythonAnywhere proxy configuration")
+        
         urls = []
         
         # Get URLs from command line arguments
@@ -183,9 +180,7 @@ class Command(BaseCommand):
             playlist_id = self.extract_playlist_id(url.strip())
             if playlist_id:
                 self.stdout.write(f"Processing playlist: {playlist_id}")
-                playlist_videos = self.get_playlist_videos(
-                    playlist_id, options
-                )
+                playlist_videos = self.get_playlist_videos(playlist_id)
                 video_ids.extend(playlist_videos)
                 self.stdout.write(
                     f"Found {len(playlist_videos)} videos in playlist"
@@ -208,11 +203,11 @@ class Command(BaseCommand):
         updated_count = 0
         error_count = 0
         
-        for video_id in video_ids:
-            self.stdout.write(f"Processing: {video_id}")
+        for i, video_id in enumerate(video_ids, 1):
+            self.stdout.write(f"Processing ({i}/{len(video_ids)}): {video_id}")
             
             # Fetch video information
-            video_info = self.get_video_info(video_id, options)
+            video_info = self.get_video_info(video_id)
             
             if not video_info:
                 error_count += 1

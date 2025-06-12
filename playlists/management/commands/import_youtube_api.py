@@ -1,11 +1,12 @@
 from django.core.management.base import BaseCommand, CommandError
 from playlists.models import Playlist
-import yt_dlp
+import requests
 import re
+from django.conf import settings
 
 
 class Command(BaseCommand):
-    help = 'Import your saved YouTube music into playlists'
+    help = 'Import YouTube music using YouTube Data API (PythonAnywhere compatible)'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -15,33 +16,36 @@ class Command(BaseCommand):
             help='YouTube URLs or video IDs to import'
         )
         parser.add_argument(
-            '--file',
+            '--api-key',
             type=str,
-            help='Path to a file containing YouTube URLs (one per line)'
+            help='YouTube Data API key (or set YOUTUBE_API_KEY in settings)'
         )
         parser.add_argument(
             '--update',
             action='store_true',
             help='Update existing playlists with new metadata'
         )
-        parser.add_argument(
-            '--proxy',
-            type=str,
-            help='Proxy URL to use for requests (e.g., http://proxy:8080)'
-        )
-        parser.add_argument(
-            '--no-proxy',
-            action='store_true',
-            help='Disable proxy usage'
-        )
+
+    def get_api_key(self, options):
+        """Get YouTube API key from options or settings"""
+        api_key = options.get('api_key')
+        if not api_key:
+            api_key = getattr(settings, 'YOUTUBE_API_KEY', None)
+        
+        if not api_key:
+            raise CommandError(
+                "YouTube API key required. Set YOUTUBE_API_KEY in settings "
+                "or use --api-key option. Get one from: "
+                "https://console.developers.google.com/"
+            )
+        
+        return api_key
 
     def extract_video_id(self, url):
         """Extract YouTube video ID from various URL formats"""
-        # Handle direct video IDs
         if len(url) == 11 and re.match(r'^[a-zA-Z0-9_-]+$', url):
             return url
         
-        # Handle various YouTube URL formats
         patterns = [
             r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)'
             r'([^&\n?#]+)',
@@ -69,113 +73,116 @@ class Command(BaseCommand):
         
         return None
 
-    def get_ydl_opts(self, options):
-        """Get yt-dlp options with proxy configuration"""
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'extractaudio': False,
-            'skip_download': True,
+    def get_playlist_videos(self, playlist_id, api_key):
+        """Fetch all video IDs from a playlist using YouTube API"""
+        video_ids = []
+        next_page_token = None
+        
+        while True:
+            url = 'https://www.googleapis.com/youtube/v3/playlistItems'
+            params = {
+                'part': 'contentDetails',
+                'playlistId': playlist_id,
+                'key': api_key,
+                'maxResults': 50,
+            }
+            
+            if next_page_token:
+                params['pageToken'] = next_page_token
+            
+            try:
+                response = requests.get(url, params=params, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+                
+                for item in data.get('items', []):
+                    video_id = item['contentDetails']['videoId']
+                    video_ids.append(video_id)
+                
+                next_page_token = data.get('nextPageToken')
+                if not next_page_token:
+                    break
+                    
+            except requests.exceptions.RequestException as e:
+                self.stdout.write(
+                    self.style.ERROR(f'API Error: {str(e)}')
+                )
+                break
+        
+        return video_ids
+
+    def get_video_info(self, video_id, api_key):
+        """Fetch video metadata using YouTube Data API"""
+        url = 'https://www.googleapis.com/youtube/v3/videos'
+        params = {
+            'part': 'snippet,statistics,contentDetails',
+            'id': video_id,
+            'key': api_key,
         }
         
-        if options.get('no_proxy'):
-            ydl_opts['proxy'] = ''
-        elif options.get('proxy'):
-            ydl_opts['proxy'] = options['proxy']
-        
-        return ydl_opts
-
-    def get_playlist_videos(self, playlist_id, options):
-        """Fetch all video IDs from a playlist"""
         try:
-            playlist_url = (
-                f"https://www.youtube.com/playlist?list={playlist_id}"
-            )
-            ydl_opts = self.get_ydl_opts(options)
-            ydl_opts['extract_flat'] = True
+            response = requests.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
             
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(playlist_url, download=False)
-                
-                if 'entries' not in info:
-                    return []
-                
-                video_ids = []
-                for entry in info['entries']:
-                    if entry and 'id' in entry:
-                        video_ids.append(entry['id'])
-                
-                return video_ids
-                
-        except Exception as e:
-            self.stdout.write(
-                self.style.ERROR(
-                    f'Error fetching playlist {playlist_id}: {str(e)}'
-                )
-            )
-            return []
-
-    def get_video_info(self, video_id, options):
-        """Fetch video metadata using yt-dlp"""
-        try:
-            youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-            ydl_opts = self.get_ydl_opts(options)
+            if not data.get('items'):
+                return None
             
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(youtube_url, download=False)
-                
-                # Convert duration from seconds to readable format
-                duration_seconds = info.get('duration', 0)
-                hours = duration_seconds // 3600
-                minutes = (duration_seconds % 3600) // 60
-                seconds = duration_seconds % 60
-                
-                if hours > 0:
-                    duration = f"{hours}:{minutes:02d}:{seconds:02d}"
-                else:
-                    duration = f"{minutes}:{seconds:02d}"
-                
-                description = info.get('description', '')
-                if len(description) > 500:
-                    description = description[:500] + '...'
-                
-                return {
-                    'title': info.get('title', 'Unknown Title'),
-                    'description': description,
-                    'thumbnail_url': info.get('thumbnail', ''),
-                    'duration': duration,
-                    'view_count': info.get('view_count', 0) or 0,
-                    'uploader': info.get('uploader', ''),
-                }
-        except Exception as e:
+            item = data['items'][0]
+            snippet = item['snippet']
+            statistics = item.get('statistics', {})
+            content_details = item.get('contentDetails', {})
+            
+            # Parse duration (ISO 8601 format like PT4M13S)
+            duration_iso = content_details.get('duration', 'PT0S')
+            duration = self.parse_duration(duration_iso)
+            
+            description = snippet.get('description', '')
+            if len(description) > 500:
+                description = description[:500] + '...'
+            
+            return {
+                'title': snippet.get('title', 'Unknown Title'),
+                'description': description,
+                'thumbnail_url': snippet.get('thumbnails', {}).get(
+                    'high', {}
+                ).get('url', ''),
+                'duration': duration,
+                'view_count': int(statistics.get('viewCount', 0)),
+                'uploader': snippet.get('channelTitle', ''),
+            }
+            
+        except requests.exceptions.RequestException as e:
             self.stdout.write(
-                self.style.ERROR(
-                    f'Error fetching info for {video_id}: {str(e)}'
-                )
+                self.style.ERROR(f'API Error for {video_id}: {str(e)}')
             )
             return None
 
+    def parse_duration(self, duration_iso):
+        """Parse ISO 8601 duration to readable format"""
+        # PT4M13S -> 4:13
+        pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
+        match = re.match(pattern, duration_iso)
+        
+        if not match:
+            return "0:00"
+        
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2) or 0)
+        seconds = int(match.group(3) or 0)
+        
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes}:{seconds:02d}"
+
     def handle(self, *args, **options):
-        urls = []
+        api_key = self.get_api_key(options)
         
-        # Get URLs from command line arguments
-        if options['urls']:
-            urls.extend(options['urls'])
+        self.stdout.write("=== YouTube Data API Import ===")
+        self.stdout.write("Using official YouTube Data API")
         
-        # Get URLs from file if specified
-        if options['file']:
-            try:
-                with open(options['file'], 'r') as f:
-                    file_urls = [line.strip() for line in f if line.strip()]
-                    urls.extend(file_urls)
-            except FileNotFoundError:
-                raise CommandError(f"File not found: {options['file']}")
-        
-        if not urls:
-            raise CommandError(
-                "No URLs provided. Use command line arguments or "
-                "--file option."
-            )
+        urls = options['urls']
         
         # Expand playlist URLs to individual video IDs
         video_ids = []
@@ -183,9 +190,7 @@ class Command(BaseCommand):
             playlist_id = self.extract_playlist_id(url.strip())
             if playlist_id:
                 self.stdout.write(f"Processing playlist: {playlist_id}")
-                playlist_videos = self.get_playlist_videos(
-                    playlist_id, options
-                )
+                playlist_videos = self.get_playlist_videos(playlist_id, api_key)
                 video_ids.extend(playlist_videos)
                 self.stdout.write(
                     f"Found {len(playlist_videos)} videos in playlist"
@@ -208,11 +213,11 @@ class Command(BaseCommand):
         updated_count = 0
         error_count = 0
         
-        for video_id in video_ids:
-            self.stdout.write(f"Processing: {video_id}")
+        for i, video_id in enumerate(video_ids, 1):
+            self.stdout.write(f"Processing ({i}/{len(video_ids)}): {video_id}")
             
             # Fetch video information
-            video_info = self.get_video_info(video_id, options)
+            video_info = self.get_video_info(video_id, api_key)
             
             if not video_info:
                 error_count += 1
