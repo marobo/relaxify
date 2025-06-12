@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY', default='your-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=['relaxify.pythonanywhere.com', 'localhost', '127.0.0.1', '0.0.0.0'], cast=Csv())
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
