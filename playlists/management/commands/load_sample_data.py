@@ -47,14 +47,6 @@ class Command(BaseCommand):
                 'duration': '2:15:00',
                 'view_count': 9450000,
             },
-            {
-                'title': 'Tibetan Singing Bowls Meditation',
-                'youtube_id': 'M0ozOGkej94',
-                'description': 'Traditional Tibetan singing bowls for deep meditation and spiritual healing. Creates a peaceful atmosphere.',
-                'thumbnail_url': 'https://i.ytimg.com/vi/M0ozOGkej94/maxresdefault.jpg',
-                'duration': '1:30:00',
-                'view_count': 4320000,
-            },
         ]
 
         created_count = 0
