@@ -1,12 +1,10 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from rest_framework import generics
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
 import yt_dlp
-import os
 import tempfile
 import re
 from .models import Playlist, PlaylistCollection, UserPlaylistCollection
@@ -14,6 +12,7 @@ from .serializers import (
     PlaylistSerializer, PlaylistCollectionSerializer, 
     PlaylistCollectionSummarySerializer, UserPlaylistCollectionSerializer
 )
+
 import requests
 
 
@@ -102,14 +101,14 @@ def download_audio(request, video_id):
     """Download audio from YouTube video (for private use only)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST method required'}, status=405)
-    
+
     try:
         # Validate that the video_id exists in our database
         playlist = get_object_or_404(Playlist, youtube_id=video_id, is_active=True)
-        
+
         # YouTube URL
         youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-        
+
         # Configure yt-dlp options
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -118,21 +117,21 @@ def download_audio(request, video_id):
             'outtmpl': f'{tempfile.gettempdir()}/%(title)s.%(ext)s',
             'quiet': True,
         }
-        
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             # Extract info first
             info = ydl.extract_info(youtube_url, download=False)
             title = info.get('title', 'Unknown')
-            
+
             # Download
             ydl.download([youtube_url])
-            
+
             return JsonResponse({
                 'success': True,
                 'message': f'Audio downloaded: {title}',
                 'title': title
             })
-            
+
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -152,6 +151,7 @@ def manifest(request):
 
 
 @csrf_exempt
+@login_required
 def import_youtube(request):
     """Enhanced web interface for importing YouTube music, playlists, and YouTube Music"""
     if request.method == 'POST':
@@ -159,19 +159,19 @@ def import_youtube(request):
         update_existing = request.POST.get('update_existing') == 'on'
         import_mode = request.POST.get('import_mode', 'individual')  # individual, playlist, youtube_music
         collection_name = request.POST.get('collection_name', '').strip()
-        
+
         if not urls_text.strip():
             return JsonResponse({'success': False, 'error': 'No URLs provided'})
-        
+
         # Split URLs by lines and clean them
         urls = [url.strip() for url in urls_text.split('\n') if url.strip()]
-        
+
         results = []
         created_count = 0
         updated_count = 0
         error_count = 0
         collection = None
-        
+
         # Create collection if needed
         if import_mode in ['playlist', 'youtube_music'] and collection_name:
             platform = 'youtube' if import_mode == 'playlist' else 'youtube_music'
@@ -182,7 +182,7 @@ def import_youtube(request):
                     'description': f'Imported {platform} collection'
                 }
             )
-        
+
         for url in urls:
             try:
                 if import_mode == 'playlist':
@@ -204,13 +204,13 @@ def import_youtube(request):
                         results.append({'url': url, 'status': 'error', 'message': 'Invalid URL'})
                         error_count += 1
                         continue
-                    
+
                     video_info = get_video_info(video_id)
                     if not video_info:
                         results.append({'url': url, 'status': 'error', 'message': 'Could not fetch video info'})
                         error_count += 1
                         continue
-                    
+
                     # Check if exists
                     try:
                         playlist = Playlist.objects.get(youtube_id=video_id)
@@ -220,16 +220,16 @@ def import_youtube(request):
                             updated_count += 1
                         else:
                             results.append({'url': url, 'status': 'exists', 'title': playlist.title})
-                            
+
                     except Playlist.DoesNotExist:
                         playlist = create_playlist_from_info(video_id, video_info, collection, import_mode)
                         results.append({'url': url, 'status': 'created', 'title': playlist.title})
                         created_count += 1
-                        
+
             except Exception as e:
                 results.append({'url': url, 'status': 'error', 'message': str(e)})
                 error_count += 1
-        
+
         return JsonResponse({
             'success': True,
             'results': results,
@@ -241,7 +241,7 @@ def import_youtube(request):
                 'total': len(urls)
             }
         })
-    
+
     return render(request, 'playlists/import.html')
 
 
@@ -251,12 +251,12 @@ def extract_playlist_id(url):
         r'list=([a-zA-Z0-9_-]+)',
         r'playlist\?list=([a-zA-Z0-9_-]+)',
     ]
-    
+
     for pattern in patterns:
         match = re.search(pattern, url)
         if match:
             return match.group(1)
-    
+
     return None
 
 
@@ -298,19 +298,19 @@ def extract_video_id(url):
     # Handle direct video IDs
     if len(url) == 11 and re.match(r'^[a-zA-Z0-9_-]+$', url):
         return url
-    
+
     # Handle various YouTube URL formats
     patterns = [
         r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)',
         r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
         r'music\.youtube\.com\/watch\?v=([^&\n?#]+)',
     ]
-    
+
     for pattern in patterns:
         match = re.search(pattern, url)
         if match:
             return match.group(1)
-    
+
     return None
 
 
