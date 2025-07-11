@@ -573,7 +573,7 @@ body {
 .loading {
     display: none;
     text-align: center;
-    color: black;
+    color: var(--text-light);
     margin: 2rem 0;
 }
 
