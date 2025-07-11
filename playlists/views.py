@@ -14,6 +14,7 @@ from .serializers import (
     PlaylistSerializer, PlaylistCollectionSerializer, 
     PlaylistCollectionSummarySerializer, UserPlaylistCollectionSerializer
 )
+import requests
 
 
 # Web Views (Template-based)
@@ -259,92 +260,6 @@ def extract_playlist_id(url):
     return None
 
 
-def import_youtube_playlist(playlist_id, collection=None, update_existing=False):
-    """Import all videos from a YouTube playlist"""
-    results = []
-    created_count = 0
-    updated_count = 0
-    error_count = 0
-    
-    try:
-        playlist_url = f"https://www.youtube.com/playlist?list={playlist_id}"
-        
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'extract_flat': True,  # Only get video IDs, don't download metadata for each
-        }
-        
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            playlist_dict = ydl.extract_info(playlist_url, download=False)
-            
-            if not playlist_dict or 'entries' not in playlist_dict:
-                return {
-                    'results': [{'url': playlist_url, 'status': 'error', 'message': 'Could not extract playlist'}],
-                    'created_count': 0,
-                    'updated_count': 0,
-                    'error_count': 1
-                }
-            
-            # Update collection with playlist info if available
-            if collection and playlist_dict.get('title'):
-                collection.youtube_playlist_id = playlist_id
-                if not collection.name or collection.name.startswith('Imported'):
-                    collection.name = playlist_dict['title']
-                if playlist_dict.get('description'):
-                    collection.description = playlist_dict['description'][:500]
-                collection.save()
-            
-            # Process each video in the playlist
-            for entry in playlist_dict['entries']:
-                if not entry or not entry.get('id'):
-                    continue
-                    
-                video_id = entry['id']
-                
-                try:
-                    # Get detailed info for this video
-                    video_info = get_video_info(video_id)
-                    if not video_info:
-                        results.append({'video_id': video_id, 'status': 'error', 'message': 'Could not fetch video info'})
-                        error_count += 1
-                        continue
-                    
-                    # Check if exists
-                    try:
-                        playlist = Playlist.objects.get(youtube_id=video_id)
-                        if update_existing:
-                            update_playlist_from_info(playlist, video_info, collection, 'youtube')
-                            results.append({'video_id': video_id, 'status': 'updated', 'title': playlist.title})
-                            updated_count += 1
-                        else:
-                            results.append({'video_id': video_id, 'status': 'exists', 'title': playlist.title})
-                            
-                    except Playlist.DoesNotExist:
-                        playlist = create_playlist_from_info(video_id, video_info, collection, 'youtube')
-                        results.append({'video_id': video_id, 'status': 'created', 'title': playlist.title})
-                        created_count += 1
-                        
-                except Exception as e:
-                    results.append({'video_id': video_id, 'status': 'error', 'message': str(e)})
-                    error_count += 1
-                    
-    except Exception as e:
-        return {
-            'results': [{'url': playlist_url, 'status': 'error', 'message': str(e)}],
-            'created_count': 0,
-            'updated_count': 0,
-            'error_count': 1
-        }
-    
-    return {
-        'results': results,
-        'created_count': created_count,
-        'updated_count': updated_count,
-        'error_count': error_count
-    }
-
-
 def create_playlist_from_info(video_id, video_info, collection=None, platform='youtube'):
     """Create a new Playlist object from video info"""
     playlist_data = {
@@ -399,40 +314,125 @@ def extract_video_id(url):
     return None
 
 
+def youtube_api_request(endpoint, params):
+    """Helper to call the YouTube Data API v3"""
+    base_url = 'https://www.googleapis.com/youtube/v3/'
+    params['key'] = settings.YOUTUBE_API_KEY
+    response = requests.get(base_url + endpoint, params=params)
+    response.raise_for_status()
+    return response.json()
+
+
 def get_video_info(video_id):
-    """Fetch video metadata using yt-dlp"""
+    """Fetch video metadata using YouTube Data API v3"""
     try:
-        youtube_url = f"https://www.youtube.com/watch?v={video_id}"
-        
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'extractaudio': False,
-            'skip_download': True,
+        data = youtube_api_request('videos', {
+            'part': 'snippet,contentDetails,statistics',
+            'id': video_id
+        })
+        if not data['items']:
+            return None
+        info = data['items'][0]
+        snippet = info['snippet']
+        statistics = info.get('statistics', {})
+        content_details = info.get('contentDetails', {})
+        # Parse ISO 8601 duration
+        import isodate
+        duration_seconds = int(isodate.parse_duration(content_details.get('duration', 'PT0S')).total_seconds())
+        hours = duration_seconds // 3600
+        minutes = (duration_seconds % 3600) // 60
+        seconds = duration_seconds % 60
+        if hours > 0:
+            duration = f"{hours}:{minutes:02d}:{seconds:02d}"
+        else:
+            duration = f"{minutes}:{seconds:02d}"
+        return {
+            'title': snippet.get('title', 'Unknown Title'),
+            'description': snippet.get('description', '')[:500] + ('...' if len(snippet.get('description', '')) > 500 else ''),
+            'thumbnail_url': snippet.get('thumbnails', {}).get('high', {}).get('url', ''),
+            'duration': duration,
+            'duration_seconds': duration_seconds,
+            'view_count': int(statistics.get('viewCount', 0)),
+            'uploader': snippet.get('channelTitle', ''),
         }
-        
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(youtube_url, download=False)
-            
-            # Convert duration from seconds to readable format
-            duration_seconds = info.get('duration', 0)
-            hours = duration_seconds // 3600
-            minutes = (duration_seconds % 3600) // 60
-            seconds = duration_seconds % 60
-            
-            if hours > 0:
-                duration = f"{hours}:{minutes:02d}:{seconds:02d}"
-            else:
-                duration = f"{minutes}:{seconds:02d}"
-            
-            return {
-                'title': info.get('title', 'Unknown Title'),
-                'description': info.get('description', '')[:500] + ('...' if len(info.get('description', '')) > 500 else ''),
-                'thumbnail_url': info.get('thumbnail', ''),
-                'duration': duration,
-                'duration_seconds': duration_seconds,
-                'view_count': info.get('view_count', 0) or 0,
-                'uploader': info.get('uploader', ''),
-            }
     except Exception as e:
         return None
+
+
+def import_youtube_playlist(playlist_id, collection=None, update_existing=False):
+    """Import all videos from a YouTube playlist using YouTube Data API v3"""
+    results = []
+    created_count = 0
+    updated_count = 0
+    error_count = 0
+    try:
+        # Get playlist metadata
+        playlist_data = youtube_api_request('playlists', {
+            'part': 'snippet',
+            'id': playlist_id
+        })
+        if playlist_data['items']:
+            snippet = playlist_data['items'][0]['snippet']
+            if collection:
+                collection.youtube_playlist_id = playlist_id
+                if not collection.name or collection.name.startswith('Imported'):
+                    collection.name = snippet.get('title', collection.name)
+                if snippet.get('description'):
+                    collection.description = snippet['description'][:500]
+                if snippet.get('thumbnails', {}).get('high', {}).get('url'):
+                    collection.thumbnail_url = snippet['thumbnails']['high']['url']
+                collection.save()
+        # Get all video IDs in the playlist (may require pagination)
+        next_page_token = None
+        video_ids = []
+        while True:
+            params = {
+                'part': 'contentDetails',
+                'playlistId': playlist_id,
+                'maxResults': 50
+            }
+            if next_page_token:
+                params['pageToken'] = next_page_token
+            page = youtube_api_request('playlistItems', params)
+            for item in page.get('items', []):
+                video_id = item['contentDetails']['videoId']
+                video_ids.append(video_id)
+            next_page_token = page.get('nextPageToken')
+            if not next_page_token:
+                break
+        # Process each video
+        for video_id in video_ids:
+            try:
+                video_info = get_video_info(video_id)
+                if not video_info:
+                    results.append({'video_id': video_id, 'status': 'error', 'message': 'Could not fetch video info'})
+                    error_count += 1
+                    continue
+                try:
+                    playlist = Playlist.objects.get(youtube_id=video_id)
+                    if update_existing:
+                        update_playlist_from_info(playlist, video_info, collection, 'youtube')
+                        results.append({'video_id': video_id, 'status': 'updated', 'title': playlist.title})
+                        updated_count += 1
+                    else:
+                        results.append({'video_id': video_id, 'status': 'exists', 'title': playlist.title})
+                except Playlist.DoesNotExist:
+                    playlist = create_playlist_from_info(video_id, video_info, collection, 'youtube')
+                    results.append({'video_id': video_id, 'status': 'created', 'title': playlist.title})
+                    created_count += 1
+            except Exception as e:
+                results.append({'video_id': video_id, 'status': 'error', 'message': str(e)})
+                error_count += 1
+    except Exception as e:
+        return {
+            'results': [{'url': f'https://www.youtube.com/playlist?list={playlist_id}', 'status': 'error', 'message': str(e)}],
+            'created_count': 0,
+            'updated_count': 0,
+            'error_count': 1
+        }
+    return {
+        'results': results,
+        'created_count': created_count,
+        'updated_count': updated_count,
+        'error_count': error_count
+    }

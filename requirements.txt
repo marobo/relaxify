@@ -5,3 +5,5 @@ yt-dlp>=2023.7.6
 whitenoise>=6.5.0
 django-cors-headers>=4.2.0
 python-decouple>=3.8
+google-api-python-client>=2.0.0
+isodate>=0.6.0
