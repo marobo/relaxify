@@ -19,6 +19,7 @@ A Progressive Web App (PWA) for relaxing YouTube playlists with offline support 
 - **Django REST Framework**: API endpoints
 - **django-webpush**: Push notifications
 - **yt-dlp**: YouTube audio downloads
+- **Google-api-python-client**: If you just want Youtube's metadata (titles, thumbnails, video links)
 - **SQLite**: Database (development)
 
 ### Frontend
