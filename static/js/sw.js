@@ -130,56 +130,6 @@ async function handleStaticRequest(request) {
     }
 }
 
-// Push notification handler
-self.addEventListener('push', event => {
-    let notificationData = {
-        title: 'Relaxify',
-        body: 'New relaxing content available!',
-        icon: '/static/images/icon-192x192.png',
-        tag: 'relaxify-notification',
-        data: { url: '/' }
-    };
-    
-    if (event.data) {
-        try {
-            const pushData = event.data.json();
-            notificationData = { ...notificationData, ...pushData };
-        } catch (error) {
-            console.error('Service Worker: Error parsing push data', error);
-        }
-    }
-    
-    event.waitUntil(
-        self.registration.showNotification(notificationData.title, {
-            body: notificationData.body,
-            icon: notificationData.icon,
-            tag: notificationData.tag,
-            data: notificationData.data
-        })
-    );
-});
-
-// Notification click handler
-self.addEventListener('notificationclick', event => {
-    event.notification.close();
-    
-    const urlToOpen = event.notification.data?.url || '/';
-    
-    event.waitUntil(
-        clients.matchAll({ type: 'window' }).then(clientList => {
-            for (const client of clientList) {
-                if (client.url === urlToOpen && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            
-            if (clients.openWindow) {
-                return clients.openWindow(urlToOpen);
-            }
-        })
-    );
-});
-
 // Background sync for playlist updates
 self.addEventListener('sync', event => {
     console.log('Service Worker: Background sync triggered', event.tag);
