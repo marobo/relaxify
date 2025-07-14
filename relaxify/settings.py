@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'corsheaders',
-    'webpush',
     # Local apps
     'playlists',
     'allauth',
@@ -173,11 +172,11 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 # WebPush settings for push notifications
-WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": config('VAPID_PUBLIC_KEY', default=''),
-    "VAPID_PRIVATE_KEY": config('VAPID_PRIVATE_KEY', default=''),
-    "VAPID_ADMIN_EMAIL": config('VAPID_ADMIN_EMAIL', default='admin@relaxify.com')
-}
+# WEBPUSH_SETTINGS = {
+#     "VAPID_PUBLIC_KEY": config('VAPID_PUBLIC_KEY', default=''),
+#     "VAPID_PRIVATE_KEY": config('VAPID_PRIVATE_KEY', default=''),
+#     "VAPID_ADMIN_EMAIL": config('VAPID_ADMIN_EMAIL', default='admin@relaxify.com')
+# }
 
 # PWA settings
 X_FRAME_OPTIONS = 'SAMEORIGIN'
