@@ -72,6 +72,23 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'playlists:import' %}">Import Music</a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link">Welcome, {{ user.username }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'account_logout' %}">
+                            Logout
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'account_login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-success" href="{% url 'account_signup' %}">Signup</a>
+                    </li>
+                    {% endif %}
 
                 </ul>
             </div>
