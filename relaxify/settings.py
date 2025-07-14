@@ -178,6 +178,19 @@ CORS_ALLOWED_ORIGINS = [
 #     "VAPID_ADMIN_EMAIL": config('VAPID_ADMIN_EMAIL', default='admin@relaxify.com')
 # }
 
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False)
+
+
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # PWA settings
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -185,3 +198,8 @@ SECURE_BROWSER_XSS_FILTER = True
 
 # YouTube Data API Key
 YOUTUBE_API_KEY = config('YOUTUBE_API_KEY', default='')
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
