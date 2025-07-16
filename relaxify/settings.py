@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='your-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 
@@ -171,3 +171,8 @@ SECURE_BROWSER_XSS_FILTER = True
 
 # YouTube Data API Key
 YOUTUBE_API_KEY = config('YOUTUBE_API_KEY', default='')
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

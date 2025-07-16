@@ -398,6 +398,9 @@
             <button class="control-btn" onclick="toggleLoop()" title="Loop" id="loopBtn">
                 <i class="fas fa-redo"></i>
             </button>
+            <button class="btn btn-outline-primary save-offline-btn" data-collection-id="{{ collection.id }}">
+                <i class="fas fa-download me-1"></i> Save Collection Offline
+            </button>
         </div>
     </div>
 
@@ -691,6 +694,33 @@ function openInYoutube(youtubeId) {
     window.open(`https://www.youtube.com/watch?v=${youtubeId}`, '_blank');
 }
 
+// IndexedDB function to save a playlist or collection
+async function savePlaylistOffline(playlist) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('relaxify-db', 1);
+
+        request.onerror = () => reject(request.error);
+
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction(['playlists'], 'readwrite');
+            const store = transaction.objectStore('playlists');
+
+            const addRequest = store.put(playlist);
+            addRequest.onsuccess = () => resolve();
+            addRequest.onerror = () => reject(addRequest.error);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('playlists')) {
+                const store = db.createObjectStore('playlists', { keyPath: 'id' });
+                store.createIndex('title', 'title', { unique: false });
+            }
+        };
+    });
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -723,6 +753,44 @@ document.getElementById('current-track-display').addEventListener('click', funct
         } else {
             player.playVideo();
         }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Save for offline functionality for collections
+    const saveOfflineBtn = document.querySelector('.save-offline-btn');
+    if (saveOfflineBtn) {
+        saveOfflineBtn.addEventListener('click', async function() {
+            const collectionId = this.dataset.collectionId;
+            const icon = this.querySelector('i');
+            const originalText = this.innerHTML;
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+            this.disabled = true;
+            
+            try {
+                // Fetch collection data and save to IndexedDB
+                const response = await fetch(`/api/collections/${collectionId}/`);
+                const collection = await response.json();
+                
+                // Save to IndexedDB
+                await savePlaylistOffline(collection);
+                
+                // Update UI
+                this.innerHTML = '<i class="fas fa-check me-1"></i> Saved Offline';
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-success');
+                
+                alert('Collection saved for offline use!');
+                
+            } catch (error) {
+                console.error('Error saving collection offline:', error);
+                this.innerHTML = originalText;
+                this.disabled = false;
+                alert('Failed to save collection offline');
+            }
+        });
     }
 });
 </script>
