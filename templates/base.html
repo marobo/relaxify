@@ -17,7 +17,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
     <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}">
-
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Relaxify - Relaxing Music Playlists">
+    <meta property="og:description" content="Relaxify - Your relaxing YouTube playlist app with offline support">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://relaxify.pythonanywhere.com/">
+    <meta property="og:image" content="https://relaxify.pythonanywhere.com/static/images/screenshot-desktop.png">
+    <meta property="og:site_name" content="Relaxify">
+    <!-- End Open Graph Meta Tags -->
+    
     <title>{% block title %}Relaxify - Relaxing Music Playlists{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
@@ -63,6 +72,23 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'playlists:import' %}">Import Music</a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link">Welcome, {{ user.username }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'account_logout' %}">
+                            Logout
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'account_login' %}">Sign in</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-sm btn-outline-success" href="{% url 'account_signup' %}">Signup</a>
+                    </li>
+                    {% endif %}
 
                 </ul>
             </div>
