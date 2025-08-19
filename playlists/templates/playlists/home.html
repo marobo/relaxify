@@ -52,16 +52,20 @@
                         {% endif %}
                         
                         {% if collection.thumbnail_url %}
-                            <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">
+                            <a href="{% url 'playlists:collection_player' collection.id %}">
+                                <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">
+                            </a>
                         {% else %}
                             <div class="collection-placeholder">
-                                {% if collection.platform == 'youtube' %}
-                                    <i class="fab fa-youtube text-white icon-large"></i>
-                                {% elif collection.platform == 'youtube_music' %}
-                                    <i class="fas fa-music text-white icon-large"></i>
-                                {% else %}
-                                    <i class="fas fa-layer-group text-white icon-large"></i>
-                                {% endif %}
+                                <a href="{% url 'playlists:collection_player' collection.id %}">
+                                    {% if collection.platform == 'youtube' %}
+                                        <i class="fab fa-youtube text-white icon-large"></i>
+                                    {% elif collection.platform == 'youtube_music' %}
+                                        <i class="fas fa-music text-white icon-large"></i>
+                                    {% else %}
+                                        <i class="fas fa-layer-group text-white icon-large"></i>
+                                    {% endif %}
+                                </a>
                             </div>
                         {% endif %}
                         
