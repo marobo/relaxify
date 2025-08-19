@@ -71,6 +71,9 @@
                         <a class="nav-link" href="{% url 'playlists:home' %}">Home</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'playlists:collection_list' %}">Collections</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'playlists:import' %}">Import Music</a>
                     </li>
                     {% if user.is_authenticated %}
