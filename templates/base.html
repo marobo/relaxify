@@ -81,16 +81,16 @@
                         <span class="nav-link">Welcome, {{ user.username }}</span>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-sm btn-outline-danger" href="{% url 'account_logout' %}">
+                        <a class="btn btn-sm btn-outline-danger" href="#">
                             Logout
                         </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'account_login' %}">Sign in</a>
+                        <a class="btn btn-sm btn-outline-primary" href="#">Sign in</a>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-sm btn-outline-success" href="{% url 'account_signup' %}">Signup</a>
+                        <a class="btn btn-sm btn-outline-success" href="#">Signup</a>
                     </li>
                     {% endif %}
 

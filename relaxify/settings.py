@@ -42,12 +42,6 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'corsheaders',
-    # Local apps
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.usersessions',
-    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -60,9 +54,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-    # Optional -- needed when: USERSESSIONS_TRACK_ACTIVITY = True
-    'allauth.usersessions.middleware.UserSessionsMiddleware',
 ]
 
 ROOT_URLCONF = 'relaxify.urls'
@@ -148,15 +139,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Allauth settings
-AUTHENTICATION_BACKENDS = [
-    # Needed to login by username in Django admin, regardless of `allauth`
-    'django.contrib.auth.backends.ModelBackend',
-
-    # `allauth` specific authentication methods, such as login by email
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -192,18 +174,6 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False)
 
 
 LOGIN_REDIRECT_URL = "/"
-
-# Allauth settings
-ACCOUNT_LOGIN_BY_CODE_ENABLED = True
-ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_SIGNUP_FIELDS = ["email*",]
-MFA_PASSKEY_LOGIN_ENABLED = True
-MFA_PASSKEY_SIGNUP_ENABLED = True
-ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-MFA_SUPPORTED_TYPES = ["recovery_codes", "totp", "webauthn"]
-MFA_WEBAUTHN_ALLOW_INSECURE_ORIGIN = True
-USERSESSIONS_TRACK_ACTIVITY = True
 
 # PWA settings
 X_FRAME_OPTIONS = 'SAMEORIGIN'
