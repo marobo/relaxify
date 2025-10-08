@@ -4,6 +4,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from rest_framework import generics
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login
+from django.shortcuts import redirect
+from .forms import LoginForm, SignupForm
+
 import yt_dlp
 import tempfile
 import re
@@ -443,3 +447,50 @@ def import_youtube_playlist(playlist_id, collection=None, update_existing=False)
         'updated_count': updated_count,
         'error_count': error_count
     }
+
+
+def auth_toggle_view(request):
+    template_name = 'auth_toggle.html'
+    if request.method == 'GET':
+        login_form = LoginForm(request)
+        signup_form = SignupForm()
+        form_to_show = 'login'
+        next_url = request.GET.get('next', '')
+        return render(request, template_name, {
+            'login_form': login_form,
+            'signup_form': signup_form,
+            'form_to_show': form_to_show,
+            'next': next_url,
+        })
+    else:  # POST
+        login_form = LoginForm(request, data=request.POST)
+        signup_form = SignupForm(request.POST)
+        form_to_show = 'login'
+        next_url = request.POST.get('next', '')
+
+        if 'login' in request.POST:
+            form_to_show = 'login'
+            if login_form.is_valid():
+                user = login_form.get_user()
+                login(request, user)
+                if next_url:
+                    return redirect(next_url)
+                return redirect('playlists:home')
+
+        elif 'signup' in request.POST:
+            form_to_show = 'signup'
+            if signup_form.is_valid():
+                user = signup_form.save(commit=False)
+                user.set_password(signup_form.cleaned_data['password'])
+                user.save()
+                login(request, user)
+                if next_url:
+                    return redirect(next_url)
+                return redirect('playlists:home')
+
+        return render(request, template_name, {
+            'login_form': login_form,
+            'signup_form': signup_form,
+            'form_to_show': form_to_show,
+            'next': next_url,
+        })
