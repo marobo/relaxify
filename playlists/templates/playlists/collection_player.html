@@ -406,13 +406,9 @@
                     {{ collection.name }}
                 </div>
                 <div class="playlist-subtitle">
-                    {% if collection.platform == 'youtube' %}
+                    {% if collection.platform == 'youtube' or collection.platform == 'youtube_music' %}
                         <span class="platform-badge">
                             <i class="fab fa-youtube"></i> YouTube
-                        </span>
-                    {% elif collection.platform == 'youtube_music' %}
-                        <span class="platform-badge platform-youtube-music">
-                            <i class="fas fa-music"></i> YouTube Music  
                         </span>
                     {% endif %}
                     {{ collection.playlist_count }} tracks

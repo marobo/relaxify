@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Import YouTube Music - Relaxify{% endblock %}
+{% block title %}Import Playlist - Relaxify{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
 {% block content %}
 <div class="import-container">
-    <h1 class="text-center mb-4">Import Your YouTube Music</h1>
+    <h1 class="text-center mb-4">Import Your YouTube Playlists</h1>
     <p class="text-center mb-4 import-description">
-        Import individual videos, entire playlists, or YouTube Music collections
+        Import individual videos or entire YouTube playlists
     </p>
     
     <form id="importForm" class="import-form">
@@ -36,14 +36,6 @@
                         <small>Import entire YouTube playlists with all videos</small>
                     </div>
                 </label>
-                <label class="radio-option">
-                    <input type="radio" name="import_mode" value="youtube_music">
-                    <span class="radio-custom"></span>
-                    <div class="radio-content">
-                        <strong>YouTube Music</strong>
-                        <small>Import from YouTube Music playlists and albums</small>
-                    </div>
-                </label>
             </div>
         </div>
 
@@ -54,7 +46,7 @@
             <textarea name="urls" id="urls" class="form-textarea"
                       placeholder="Paste YouTube URLs here (one per line)..."></textarea>
             <div class="help-text" id="help-content">
-                Supported formats: Individual video URLs, playlist URLs, YouTube Music playlist URLs
+                Supported formats: Individual video URLs and playlist URLs
             </div>
         </div>
         
@@ -84,7 +76,7 @@
         
         <div class="form-group">
             <button type="submit" class="btn-import" id="submitBtn">
-                <i class="fas fa-download"></i> <span id="submit-text">Import Music</span>
+                <i class="fas fa-download"></i> <span id="submit-text">Import Playlist</span>
             </button>
         </div>
     </form>
@@ -122,17 +114,15 @@ function updateUIForMode(mode) {
         case 'individual':
             collectionGroup.style.display = 'none';
             urlsLabel.textContent = 'YouTube URLs';
-            helpContent.textContent = 'Supported formats: Full YouTube URLs, youtu.be short links, direct video IDs, and YouTube Music URLs';
-            submitText.textContent = 'Import Music';
+            helpContent.textContent = 'Supported formats: Full YouTube URLs, youtu.be short links, and direct video IDs';
+            submitText.textContent = 'Import Playlist';
             textarea.placeholder = `Paste YouTube URLs here, one per line:
 
 Individual Videos:
 https://www.youtube.com/watch?v=dQw4w9WgXcQ
 https://youtu.be/dQw4w9WgXcQ
 dQw4w9WgXcQ
-
-YouTube Music:
-https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
+`;
             break;
             
         case 'playlist':
@@ -144,23 +134,6 @@ https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
 
 https://www.youtube.com/playlist?list=PLrALGJVf-8p0...
 https://youtube.com/playlist?list=PLrALGJVf-8p0...`;
-            break;
-            
-        case 'youtube_music':
-            collectionGroup.style.display = 'block';
-            urlsLabel.textContent = 'YouTube Music URLs';
-            helpContent.textContent = 'Import from YouTube Music playlists, albums, or individual tracks';
-            submitText.textContent = 'Import from YouTube Music';
-            textarea.placeholder = `Paste YouTube Music URLs here, one per line:
-
-Playlists:
-https://music.youtube.com/playlist?list=RDCLAK5uy_k...
-
-Albums:
-https://music.youtube.com/browse/MPREb_...
-
-Individual tracks:
-https://music.youtube.com/watch?v=dQw4w9WgXcQ`;
             break;
     }
 }
@@ -202,7 +175,7 @@ document.getElementById('importForm').addEventListener('submit', async function(
     } finally {
         // Hide loading state
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-download"></i> <span id="submit-text">Import Music</span>';
+        submitBtn.innerHTML = '<i class="fas fa-download"></i> <span id="submit-text">Import Playlist</span>';
         loading.classList.remove('active');
         updateUIForMode(document.querySelector('input[name="import_mode"]:checked').value);
     }

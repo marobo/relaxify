@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Relaxify - YouTube Music Collections{% endblock %}
+{% block title %}Relaxify - Collections{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
@@ -10,14 +10,13 @@
     <!-- Hero Section -->
     <div class="hero-section">
         <h1 class="display-4 fw-bold mb-3">
-            Your YouTube Music Collections
+            Your Collections
         </h1>
         <p class="lead mb-4">
-            Organize and enjoy your favorite YouTube playlists, YouTube Music collections, and individual tracks
+            Organize and enjoy your favorite YouTube playlists and individual tracks
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
             <span class="badge bg-primary fs-6 px-3 py-2">🎵 YouTube</span>
-            <span class="badge bg-secondary fs-6 px-3 py-2">🎼 YouTube Music</span>
             <span class="badge bg-success fs-6 px-3 py-2">📱 Collections</span>
             <span class="badge bg-info fs-6 px-3 py-2">🎧 Individual Tracks</span>
         </div>
@@ -30,7 +29,7 @@
                 <i class="fas fa-layer-group"></i> Your Collections
             </h2>
             <p class="section-subtitle">
-                Organized playlists from YouTube and YouTube Music
+                Organized playlists from YouTube
             </p>
             
             <div class="row">
@@ -42,8 +41,8 @@
                                 <i class="fab fa-youtube"></i> YouTube
                             </div>
                         {% elif collection.platform == 'youtube_music' %}
-                            <div class="platform-badge platform-youtube-music">
-                                <i class="fas fa-music"></i> YouTube Music
+                            <div class="platform-badge platform-youtube">
+                                <i class="fab fa-youtube"></i> YouTube
                             </div>
                         {% else %}
                             <div class="platform-badge platform-mixed">
@@ -61,7 +60,7 @@
                                     {% if collection.platform == 'youtube' %}
                                         <i class="fab fa-youtube text-white icon-large"></i>
                                     {% elif collection.platform == 'youtube_music' %}
-                                        <i class="fas fa-music text-white icon-large"></i>
+                                        <i class="fab fa-youtube text-white icon-large"></i>
                                     {% else %}
                                         <i class="fas fa-layer-group text-white icon-large"></i>
                                     {% endif %}
@@ -155,7 +154,7 @@
         <div class="empty-state">
             <i class="fas fa-music"></i>
             <h3>No music collections yet</h3>
-            <p>Start by importing your favorite YouTube playlists, YouTube Music collections, or individual tracks!</p>
+            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>
         </div>
     {% endif %}
     
@@ -163,10 +162,10 @@
         <i class="fas fa-plus-circle mb-3 large-icon"></i>
         <h3 class="text-white mb-2">Import More Music</h3>
         <p class="text-white-50 mb-3">
-            Import YouTube playlists, YouTube Music collections, or individual tracks
+            Import YouTube playlists or individual tracks
         </p>
         <a href="{% url 'playlists:import' %}" class="btn btn-primary">
-            <i class="fas fa-download"></i> Import Music
+            <i class="fas fa-download"></i> Import Playlist
         </a>
     </div>
 </div>

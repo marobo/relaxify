@@ -16,7 +16,7 @@ class PlaylistAdmin(admin.ModelAdmin):
     list_display = ['title', 'artist', 'collection', 'platform_source', 'duration', 'view_count', 'is_active', 'created']
     list_filter = ['platform_source', 'is_active', 'created', 'collection']
     search_fields = ['title', 'artist', 'album', 'youtube_id']
-    readonly_fields = ['created', 'updated', 'youtube_url', 'embed_url', 'youtube_music_url']
+    readonly_fields = ['created', 'updated', 'youtube_url', 'embed_url']
     list_per_page = 50
     
     fieldsets = (
@@ -24,7 +24,7 @@ class PlaylistAdmin(admin.ModelAdmin):
             'fields': ('title', 'artist', 'album', 'track_number', 'collection')
         }),
         ('YouTube Details', {
-            'fields': ('youtube_id', 'platform_source', 'thumbnail_url', 'youtube_url', 'embed_url', 'youtube_music_url')
+            'fields': ('youtube_id', 'platform_source', 'thumbnail_url', 'youtube_url', 'embed_url')
         }),
         ('Metadata', {
             'fields': ('description', 'duration', 'duration_seconds', 'view_count')

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Relaxify - YouTube Music Collections{% endblock %}
+{% block title %}Relaxify - Collections{% endblock %}
 
 {% block extra_css %}{% endblock %}
 
@@ -16,7 +16,7 @@
             <p class="section-subtitle">
                 Organized playlists from YouTube
             <a href="{% url 'playlists:import' %}">
-                <i class="fas fa-download"></i> Import Music
+                <i class="fas fa-download"></i> Import Playlist
             </a>
             </p>
             
@@ -29,8 +29,8 @@
                                 <i class="fab fa-youtube"></i> YouTube
                             </div>
                         {% elif collection.platform == 'youtube_music' %}
-                            <div class="platform-badge platform-youtube-music">
-                                <i class="fas fa-music"></i> YouTube Music
+                            <div class="platform-badge platform-youtube">
+                                <i class="fab fa-youtube"></i> YouTube
                             </div>
                         {% else %}
                             <div class="platform-badge platform-mixed">
@@ -79,7 +79,7 @@
         <div class="empty-state">
             <i class="fas fa-music"></i>
             <h3>No music collections yet</h3>
-            <p>Start by importing your favorite YouTube playlists, YouTube Music collections, or individual tracks!</p>
+            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>
         </div>
     {% endif %}
 </div>

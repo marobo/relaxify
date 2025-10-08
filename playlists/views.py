@@ -161,11 +161,11 @@ def manifest(request):
 @csrf_exempt
 @login_required
 def import_youtube(request):
-    """Enhanced web interface for importing YouTube music, playlists, and YouTube Music"""
+    """Enhanced web interface for importing YouTube videos and playlists"""
     if request.method == 'POST':
         urls_text = request.POST.get('urls', '')
         update_existing = request.POST.get('update_existing') == 'on'
-        import_mode = request.POST.get('import_mode', 'individual')  # individual, playlist, youtube_music
+        import_mode = request.POST.get('import_mode', 'individual')  # individual, playlist
         collection_name = request.POST.get('collection_name', '').strip()
 
         if not urls_text.strip():
@@ -181,8 +181,8 @@ def import_youtube(request):
         collection = None
 
         # Create collection if needed
-        if import_mode in ['playlist', 'youtube_music'] and collection_name:
-            platform = 'youtube' if import_mode == 'playlist' else 'youtube_music'
+        if import_mode in ['playlist'] and collection_name:
+            platform = 'youtube'
             collection, created = PlaylistCollection.objects.get_or_create(
                 name=collection_name,
                 defaults={
@@ -223,14 +223,14 @@ def import_youtube(request):
                     try:
                         playlist = Playlist.objects.get(youtube_id=video_id)
                         if update_existing:
-                            update_playlist_from_info(playlist, video_info, collection, import_mode)
+                            update_playlist_from_info(playlist, video_info, collection, 'youtube')
                             results.append({'url': url, 'status': 'updated', 'title': playlist.title})
                             updated_count += 1
                         else:
                             results.append({'url': url, 'status': 'exists', 'title': playlist.title})
 
                     except Playlist.DoesNotExist:
-                        playlist = create_playlist_from_info(video_id, video_info, collection, import_mode)
+                        playlist = create_playlist_from_info(video_id, video_info, collection, 'youtube')
                         results.append({'url': url, 'status': 'created', 'title': playlist.title})
                         created_count += 1
 
@@ -311,7 +311,6 @@ def extract_video_id(url):
     patterns = [
         r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)',
         r'youtube\.com\/watch\?.*v=([^&\n?#]+)',
-        r'music\.youtube\.com\/watch\?v=([^&\n?#]+)',
     ]
 
     for pattern in patterns:

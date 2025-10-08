@@ -6,7 +6,7 @@ from urllib.parse import urlparse, parse_qs
 
 
 class Command(BaseCommand):
-    help = 'Import your saved YouTube music into playlists'
+    help = 'Import your saved YouTube videos into playlists'
 
     def add_arguments(self, parser):
         parser.add_argument(

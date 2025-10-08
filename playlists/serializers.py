@@ -8,7 +8,6 @@ class PlaylistSerializer(serializers.ModelSerializer):
     """
     youtube_url = serializers.ReadOnlyField()
     embed_url = serializers.ReadOnlyField()
-    youtube_music_url = serializers.ReadOnlyField()
     collection_name = serializers.CharField(source='collection.name', read_only=True)
 
     class Meta:
@@ -18,7 +17,7 @@ class PlaylistSerializer(serializers.ModelSerializer):
             'youtube_id', 'description', 'thumbnail_url',
             'duration', 'duration_seconds', 'view_count',
             'platform_source', 'collection', 'collection_name',
-            'youtube_url', 'embed_url', 'youtube_music_url',
+            'youtube_url', 'embed_url',
             'created', 'updated'
         ]
 

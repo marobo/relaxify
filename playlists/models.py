@@ -91,10 +91,7 @@ class Playlist(models.Model):
         """Returns the YouTube embed URL for this track"""
         return f"https://www.youtube.com/embed/{self.youtube_id}"
     
-    @property
-    def youtube_music_url(self):
-        """Returns the YouTube Music URL for this track"""
-        return f"https://music.youtube.com/watch?v={self.youtube_id}"
+    # Removed YouTube Music URL helper as YouTube Music is not supported
 
 
 class UserPlaylistCollection(models.Model):
