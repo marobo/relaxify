@@ -1520,3 +1520,46 @@ body {
 .rounded-music-large {
     border-radius: 15px;
 } 
+
+/* Auth style */
+.form-wrapper {
+    position: relative;
+    min-height: 400px;
+}
+
+.auth-container {
+    width: 400px;
+    background: var(--surface);
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.form-wrapper {
+    display: flex;
+    width: 200%;
+    transition: transform 0.5s ease;
+}
+
+.form-box {
+    width: 50%;
+    padding: 30px;
+}
+
+.border {
+    border-radius: 0.375rem;
+}
+
+.auth-container.active .form-wrapper {
+    transform: translateX(-50%);
+}
+
+.switch {
+    text-align: center;
+    cursor: pointer;
+    margin-top: 10px;
+    color: var(--accent-color);
+}
+
+/* End of Auth style */

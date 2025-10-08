@@ -31,4 +31,5 @@ urlpatterns = [
     # PWA endpoints
     path('sw.js', views.service_worker, name='service_worker'),
     path('manifest.json', views.manifest, name='manifest'),
-] 
+    path('auth/', views.auth_toggle_view, name='auth_toggle'),
+]
