@@ -68,17 +68,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto d-flex align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'playlists:home' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'playlists:collection_list' %}">Collections</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'playlists:import' %}">Import Playlist</a>
+                        <a class="nav-link" href="{% url 'playlists:import' %}">Import Music</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <span class="nav-link">Welcome, {{ user.username }}</span>
+                        <span class="nav-link">Hello, {{ user.username }}</span>
                     </li>
                     <li class="nav-item">
                         <form method="post" action="{% url 'logout' %}">

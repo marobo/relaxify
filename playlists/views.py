@@ -13,7 +13,7 @@ import tempfile
 import re
 from .models import Playlist, PlaylistCollection, UserPlaylistCollection
 from .serializers import (
-    PlaylistSerializer, PlaylistCollectionSerializer, 
+    PlaylistSerializer, PlaylistCollectionSerializer,
     PlaylistCollectionSummarySerializer, UserPlaylistCollectionSerializer
 )
 
@@ -23,11 +23,26 @@ import requests
 # Web Views (Template-based)
 def home(request):
     """Home page showing playlist collections and individual tracks"""
+    # Get filter parameter from URL
+    filter_type = request.GET.get('filter', 'all')  # all, collections, tracks
+
+    # Get collections and individual tracks
     collections = PlaylistCollection.objects.filter(is_active=True)
-    individual_tracks = Playlist.objects.filter(is_active=True, collection__isnull=True)[:20]
+    individual_tracks = Playlist.objects.filter(
+        is_active=True, collection__isnull=True
+    )[:20]
+
+    # Apply filtering based on filter_type
+    if filter_type == 'collections':
+        individual_tracks = []
+    elif filter_type == 'tracks':
+        collections = []
+    # If filter_type is 'all', show both (no filtering needed)
+
     return render(request, 'playlists/home.html', {
         'collections': collections,
-        'individual_tracks': individual_tracks
+        'individual_tracks': individual_tracks,
+        'current_filter': filter_type
     })
 
 

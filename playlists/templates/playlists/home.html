@@ -1,27 +1,23 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Relaxify - Collections{% endblock %}
-
-{% block extra_css %}{% endblock %}
+{% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- Hero Section -->
-    <div class="hero-section">
-        <h1 class="display-4 fw-bold mb-3">
-            Your Collections
-        </h1>
-        <p class="lead mb-4">
-            Organize and enjoy your favorite YouTube playlists and individual tracks
-        </p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <span class="badge bg-primary fs-6 px-3 py-2">🎵 YouTube</span>
-            <span class="badge bg-success fs-6 px-3 py-2">📱 Collections</span>
-            <span class="badge bg-info fs-6 px-3 py-2">🎧 Individual Tracks</span>
-        </div>
+    <!-- Filter Section -->
+    <div class="d-flex gap-3 flex-wrap mb-3">
+        <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'all' %}active{% else %}bg-outline-primary{% endif %}">🎼 All</span>
+        </a>
+        <a href="{% url 'playlists:home' %}?filter=collections" class="filter-link" data-filter="collections">
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'collections' %}active{% else %}bg-outline-primary{% endif %}">🎵 Collections</span>
+        </a>
+        <a href="{% url 'playlists:home' %}?filter=tracks" class="filter-link" data-filter="tracks">
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'tracks' %}active{% else %}bg-outline-primary{% endif %}">🎧 Tracks</span>
+        </a>
     </div>
-    
+    <hr>
     <!-- Collections Section -->
     {% if collections %}
         <div class="mb-5">
@@ -105,7 +101,7 @@
             </div>
         </div>
     {% endif %}
-    
+    <hr>
     <!-- Individual Tracks Section -->
     {% if individual_tracks %}
         <div class="mb-5">
@@ -157,8 +153,7 @@
             <p>Start by importing your favorite YouTube playlists or individual tracks!</p>
         </div>
     {% endif %}
-    
-    <div class="import-cta" onclick="location.href='{% url 'playlists:import' %}'">
+    <div class="import-cta" data-import-url="{% url 'playlists:import' %}">
         <i class="fas fa-plus-circle mb-3 large-icon"></i>
         <h3 class="text-white mb-2">Import More Music</h3>
         <p class="text-white-50 mb-3">
@@ -235,6 +230,19 @@ function initPlayer(videoId) {
 document.getElementById('playerModal').addEventListener('hidden.bs.modal', function() {
     if (player && player.pauseVideo) {
         player.pauseVideo();
+    }
+});
+
+// Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const importCta = document.querySelector('.import-cta');
+    if (importCta) {
+        importCta.addEventListener('click', function() {
+            const importUrl = this.dataset.importUrl;
+            if (importUrl) {
+                window.location.href = importUrl;
+            }
+        });
     }
 });
 
