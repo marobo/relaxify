@@ -11,8 +11,7 @@ urlpatterns = [
     path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path('player/<int:collection_id>/', views.collection_player, name='collection_player'),
     path('offline/', views.offline, name='offline'),
-    path('collections/', views.collection_list, name='collection_list'),
-    
+
     # API endpoints for tracks
     path('api/tracks/', views.PlaylistListAPIView.as_view(), name='api-tracks-list'),
     path('api/tracks/<int:pk>/', views.PlaylistDetailAPIView.as_view(), name='api-tracks-detail'),

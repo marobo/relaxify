@@ -77,14 +77,6 @@ def offline(request):
     return render(request, 'playlists/offline.html')
 
 
-def collection_list(request):
-    """Page listing all playlist collections"""
-    collections = PlaylistCollection.objects.filter(is_active=True)
-    return render(request, 'playlists/collection_list.html', {
-        'collections': collections
-    })
-
-
 # API Views (REST Framework)
 class PlaylistListAPIView(generics.ListAPIView):
     """API endpoint that returns a list of all active tracks"""
