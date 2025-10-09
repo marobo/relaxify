@@ -174,7 +174,8 @@ EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False)
 
 
 LOGIN_REDIRECT_URL = "playlists:home"
-LOGOUT_REDIRECT_URL = "playlists:home"
+LOGOUT_REDIRECT_URL = 'playlists:auth_toggle'
+LOGIN_URL = 'playlists:auth_toggle'
 
 # PWA settings
 X_FRAME_OPTIONS = 'SAMEORIGIN'
