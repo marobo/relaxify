@@ -8,7 +8,10 @@ const STATIC_FILES = [
     '/offline/',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+    '/static/css/style.css',
+    '/static/css/collection_player.css',
+    '/static/css/collection_detail.css',
 ];
 
 // Install event - cache static files
