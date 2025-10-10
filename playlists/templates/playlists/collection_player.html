@@ -43,15 +43,11 @@
         <!-- Playlist Section -->
         <div class="playlist-section">
             <!-- Playlist Header -->
-            <div class="playlist-header">
-                <div class="playlist-title">
-                    <i class="fas fa-list"></i>
+            <div class="row playlist-header d-flex justify-content-between">
+                <div class="col-12 playlist-title">
                     {{ collection.name }}
-                    <span id="offline-indicator" class="offline-indicator" style="display: none;">
-                        <i class="fas fa-wifi-slash"></i>
-                    </span>
                 </div>
-                <div class="playlist-subtitle">
+                <div class="col-12 playlist-subtitle d-flex justify-content-start">
                     {% if collection.platform == 'youtube' or collection.platform == 'youtube_music' %}
                         <span class="platform-badge">
                             <i class="fab fa-youtube"></i> YouTube
@@ -61,8 +57,6 @@
                     <span id="cached-indicator" class="cached-indicator" style="display: none;">
                         <i class="fas fa-download"></i> Cached
                     </span>
-                </div>
-                <div class="playlist-controls">
                     <button class="control-btn" onclick="saveForOffline()" title="Save for Offline" id="saveOfflineBtn">
                         <i class="fas fa-download"></i>
                     </button>

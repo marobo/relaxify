@@ -287,18 +287,6 @@ body {
     transform: scale(1.1);
 }
 
-.platform-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background: rgba(255, 0, 0, 0.2);
-    color: #ff4444;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
 .platform-youtube-music {
     background: rgba(255, 87, 51, 0.2);
     color: #ff5733;
@@ -312,6 +300,9 @@ body {
 }
 
 @media (max-width: 768px) {
+    .playlist-title {
+        font-size: 12px;
+    }
     .player-container {
         flex-direction: column;
     }
