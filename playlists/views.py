@@ -46,16 +46,6 @@ def home(request):
     })
 
 
-def collection_detail(request, collection_id):
-    """Detail page for a playlist collection"""
-    collection = get_object_or_404(PlaylistCollection, id=collection_id, is_active=True)
-    tracks = collection.playlists.filter(is_active=True)
-    return render(request, 'playlists/collection_detail.html', {
-        'collection': collection,
-        'tracks': tracks
-    })
-
-
 def collection_player(request, collection_id):
     """Full-screen playlist player for a collection"""
     collection = get_object_or_404(PlaylistCollection, id=collection_id, is_active=True)

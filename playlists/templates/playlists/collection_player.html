@@ -12,7 +12,7 @@
         <!-- Video Section -->
         <div class="video-section">
             <!-- Close Button -->
-            <button class="close-btn" onclick="location.href='{% url 'playlists:collection_detail' collection.id %}'">
+            <button class="close-btn" onclick="location.href='{% url 'playlists:home' %}'">
                 <i class="fas fa-times"></i>
             </button>
 
@@ -413,7 +413,7 @@
                     break;
                 case 'Escape':
                     e.preventDefault();
-                    location.href = '{% url "playlists:collection_detail" collection.id %}';
+                    location.href = '{% url "playlists:home" %}';
                     break;
             }
         });

@@ -85,17 +85,6 @@
                                 </div>
                             {% endif %}
                         </div>
-                        
-                        <div class="collection-actions">
-                            <a href="{% url 'playlists:collection_player' collection.id %}" 
-                               class="btn btn-primary collection-action-btn">
-                                <i class="fas fa-play"></i> Play
-                            </a>
-                            <a href="{% url 'playlists:collection_detail' collection.id %}" 
-                               class="btn btn-secondary collection-action-btn">
-                                <i class="fas fa-list"></i> View
-                            </a>
-                        </div>
                     </div>
                 </div>
                 {% endfor %}
