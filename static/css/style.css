@@ -85,15 +85,6 @@ body {
 /* ================================================
    HOME PAGE STYLES (from home.html)
    ================================================ */
-
-.hero-section {
-    background: linear-gradient(135deg, rgba(103, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
-    border-radius: 20px;
-    padding: 3rem 2rem;
-    margin-bottom: 3rem;
-    text-align: center;
-}
-
 .collection-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -1265,10 +1256,6 @@ body {
    ================================================ */
 
 @media (max-width: 768px) {
-    .hero-section {
-        padding: 2rem 1rem;
-    }
-    
     .section-title {
         font-size: 1.5rem;
     }
