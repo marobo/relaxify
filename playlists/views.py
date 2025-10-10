@@ -13,7 +13,7 @@ import tempfile
 import re
 from .models import Playlist, PlaylistCollection, UserPlaylistCollection
 from .serializers import (
-    PlaylistSerializer, PlaylistCollectionSerializer, 
+    PlaylistSerializer, PlaylistCollectionSerializer,
     PlaylistCollectionSummarySerializer, UserPlaylistCollectionSerializer
 )
 
@@ -23,21 +23,26 @@ import requests
 # Web Views (Template-based)
 def home(request):
     """Home page showing playlist collections and individual tracks"""
+    # Get filter parameter from URL
+    filter_type = request.GET.get('filter', 'all')  # all, collections, tracks
+
+    # Get collections and individual tracks
     collections = PlaylistCollection.objects.filter(is_active=True)
-    individual_tracks = Playlist.objects.filter(is_active=True, collection__isnull=True)[:20]
+    individual_tracks = Playlist.objects.filter(
+        is_active=True, collection__isnull=True
+    )[:20]
+
+    # Apply filtering based on filter_type
+    if filter_type == 'collections':
+        individual_tracks = []
+    elif filter_type == 'tracks':
+        collections = []
+    # If filter_type is 'all', show both (no filtering needed)
+
     return render(request, 'playlists/home.html', {
         'collections': collections,
-        'individual_tracks': individual_tracks
-    })
-
-
-def collection_detail(request, collection_id):
-    """Detail page for a playlist collection"""
-    collection = get_object_or_404(PlaylistCollection, id=collection_id, is_active=True)
-    tracks = collection.playlists.filter(is_active=True)
-    return render(request, 'playlists/collection_detail.html', {
-        'collection': collection,
-        'tracks': tracks
+        'individual_tracks': individual_tracks,
+        'current_filter': filter_type
     })
 
 
@@ -55,19 +60,6 @@ def detail(request, playlist_id):
     """Detail page for a specific track"""
     playlist = get_object_or_404(Playlist, id=playlist_id, is_active=True)
     return render(request, 'playlists/detail.html', {'playlist': playlist})
-
-
-def offline(request):
-    """Offline fallback page"""
-    return render(request, 'playlists/offline.html')
-
-
-def collection_list(request):
-    """Page listing all playlist collections"""
-    collections = PlaylistCollection.objects.filter(is_active=True)
-    return render(request, 'playlists/collection_list.html', {
-        'collections': collections
-    })
 
 
 # API Views (REST Framework)
@@ -494,3 +486,8 @@ def auth_toggle_view(request):
             'form_to_show': form_to_show,
             'next': next_url,
         })
+
+
+def offline_manager(request):
+    """Offline manager page for managing cached collections"""
+    return render(request, 'playlists/offline_manager.html')
