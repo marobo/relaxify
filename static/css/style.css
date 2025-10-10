@@ -157,20 +157,10 @@ body {
     color: #ff4444;
     padding: 0.2rem 0.5rem;
     border-radius: 4px;
+    margin-bottom: 0.5rem;
     font-size: 0.7rem;
     font-weight: 600;
-}
-
-.platform-youtube {
-    background: rgba(255, 0, 0, 0.2);
-    color: #ff4444;
     border: 1px solid rgba(255, 0, 0, 0.3);
-}
-
-.platform-youtube-music {
-    background: rgba(255, 87, 51, 0.2);
-    color: #ff5733;
-    border: 1px solid rgba(255, 87, 51, 0.3);
 }
 
 .platform-mixed {

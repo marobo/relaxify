@@ -287,11 +287,6 @@ body {
     transform: scale(1.1);
 }
 
-.platform-youtube-music {
-    background: rgba(255, 87, 51, 0.2);
-    color: #ff5733;
-}
-
 /* Responsive Design */
 @media (max-width: 1024px) {
     .playlist-section {
