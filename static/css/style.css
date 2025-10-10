@@ -1550,3 +1550,73 @@ body {
 }
 
 /* End of Auth style */
+
+/* ================================================
+   OFFLINE STORAGE STYLES
+   ================================================ */
+
+.offline-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.cached-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(29, 185, 84, 0.2);
+    color: #1db954;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.control-btn.saved {
+    color: #1db954;
+    background: rgba(29, 185, 84, 0.1);
+}
+
+.control-btn.saved:hover {
+    background: rgba(29, 185, 84, 0.2);
+}
+
+/* Offline mode styles */
+.offline-mode .video-player {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 1.1rem;
+}
+
+.offline-mode .video-player::before {
+    content: "📱 Offline Mode - Video requires internet connection";
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Loading states for offline operations */
+.control-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.control-btn.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -6,12 +6,14 @@ const DYNAMIC_CACHE = 'relaxify-dynamic-v1';
 const STATIC_FILES = [
     '/',
     '/offline/',
+    '/static/offline-player.html',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
     '/static/css/style.css',
     '/static/css/collection_player.css',
     '/static/css/collection_detail.css',
+    '/static/js/offline-storage.js',
 ];
 
 // Install event - cache static files
@@ -103,6 +105,31 @@ async function handleNavigationRequest(request) {
         const networkResponse = await fetch(request);
         return networkResponse;
     } catch (error) {
+        // Check if this is a collection player request
+        const url = new URL(request.url);
+        const playerMatch = url.pathname.match(/\/collections\/(\d+)\/player\/$/);
+        
+        if (playerMatch) {
+            // This is a collection player request - try to serve cached version
+            const cachedResponse = await caches.match(request);
+            if (cachedResponse) {
+                return cachedResponse;
+            }
+            
+            // If no cached version, redirect to offline player
+            const offlinePlayerResponse = await caches.match('/static/offline-player.html');
+            if (offlinePlayerResponse) {
+                return offlinePlayerResponse;
+            }
+            
+            // Fallback to offline page
+            const offlineResponse = await caches.match('/offline/');
+            if (offlineResponse) {
+                return offlineResponse;
+            }
+        }
+        
+        // Default offline response
         const offlineResponse = await caches.match('/offline/');
         if (offlineResponse) {
             return offlineResponse;
@@ -184,4 +211,87 @@ self.addEventListener('message', event => {
         // Register background sync
         self.registration.sync.register('playlist-sync');
     }
-}); 
+    
+    if (event.data && event.data.type === 'CACHE_COLLECTION') {
+        // Cache collection data for offline use
+        event.waitUntil(cacheCollectionData(event.data.collection, event.data.tracks));
+    }
+    
+    if (event.data && event.data.type === 'GET_CACHED_COLLECTION') {
+        // Get cached collection data
+        event.waitUntil(getCachedCollection(event.data.collectionId, event.ports[0]));
+    }
+});
+
+// Cache collection data in service worker
+async function cacheCollectionData(collection, tracks) {
+    try {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        
+        // Cache collection metadata
+        const collectionKey = `/api/collections/${collection.id}/`;
+        const collectionResponse = new Response(JSON.stringify(collection), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        await cache.put(collectionKey, collectionResponse);
+        
+        // Cache tracks
+        const tracksKey = `/api/collections/${collection.id}/tracks/`;
+        const tracksResponse = new Response(JSON.stringify(tracks), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        await cache.put(tracksKey, tracksResponse);
+        
+        console.log(`Service Worker: Cached collection ${collection.id} with ${tracks.length} tracks`);
+        
+        // Notify clients
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+            client.postMessage({
+                type: 'COLLECTION_CACHED',
+                collectionId: collection.id,
+                trackCount: tracks.length
+            });
+        });
+        
+    } catch (error) {
+        console.error('Service Worker: Error caching collection', error);
+    }
+}
+
+// Get cached collection data
+async function getCachedCollection(collectionId, port) {
+    try {
+        const cache = await caches.open(DYNAMIC_CACHE);
+        
+        const [collectionResponse, tracksResponse] = await Promise.all([
+            cache.match(`/api/collections/${collectionId}/`),
+            cache.match(`/api/collections/${collectionId}/tracks/`)
+        ]);
+        
+        if (collectionResponse && tracksResponse) {
+            const collection = await collectionResponse.json();
+            const tracks = await tracksResponse.json();
+            
+            port.postMessage({
+                type: 'CACHED_COLLECTION_DATA',
+                collection: collection,
+                tracks: tracks
+            });
+        } else {
+            port.postMessage({
+                type: 'CACHED_COLLECTION_DATA',
+                collection: null,
+                tracks: []
+            });
+        }
+        
+    } catch (error) {
+        console.error('Service Worker: Error getting cached collection', error);
+        port.postMessage({
+            type: 'CACHED_COLLECTION_DATA',
+            collection: null,
+            tracks: []
+        });
+    }
+} 

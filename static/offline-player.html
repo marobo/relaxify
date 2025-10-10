@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Player - Relaxify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <link href="/static/css/collection_player.css" rel="stylesheet">
+    <style>
+        .offline-player-container {
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .offline-header {
+            background: rgba(245, 158, 11, 0.2);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .offline-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .back-to-manager {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+        
+        .back-to-manager:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+        
+        .offline-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+        }
+        
+        .offline-content {
+            text-align: center;
+            padding: 2rem;
+            max-width: 500px;
+        }
+        
+        .offline-content h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+        
+        .offline-content p {
+            color: #aaa;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="offline-player-container">
+    <button class="back-to-manager" onclick="goBack()" title="Back to Offline Manager">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <div class="offline-header">
+        <div class="offline-badge">
+            <i class="fas fa-wifi-slash"></i>
+            Offline Mode
+        </div>
+        <div id="online-detection-badge" style="display: none; margin-bottom: 1rem;">
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(29, 185, 84, 0.2); color: #1db954; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                Monitoring connection...
+            </div>
+        </div>
+        <h1 id="collection-title">Loading...</h1>
+        <p id="collection-subtitle">Preparing offline playlist...</p>
+    </div>
+
+    <div class="player-container">
+        <!-- Video Section -->
+        <div class="video-section">
+            <!-- Video Player -->
+            <div class="video-player" id="video-container">
+                <div class="offline-placeholder" id="offline-placeholder">
+                    <div class="offline-content">
+                        <i class="fas fa-wifi-slash" style="font-size: 3rem; color: #f59e0b; margin-bottom: 1rem;"></i>
+                        <h3>Offline Mode</h3>
+                        <p>Track information is available offline</p>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 1rem;">
+                            Video playback requires internet connection
+                        </p>
+                        <div class="offline-features" style="margin-top: 2rem; text-align: left; max-width: 300px;">
+                            <h5 style="color: #1db954; margin-bottom: 1rem;">Available Offline:</h5>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #1db954; margin-right: 0.5rem;"></i> Browse playlist</li>
+                                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #1db954; margin-right: 0.5rem;"></i> View track details</li>
+                                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #1db954; margin-right: 0.5rem;"></i> Shuffle tracks</li>
+                                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #1db954; margin-right: 0.5rem;"></i> Loop settings</li>
+                                <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #1db954; margin-right: 0.5rem;"></i> Player controls</li>
+                            </ul>
+                        </div>
+                        <div style="margin-top: 2rem;">
+                            <button onclick="goToOnlinePlayer()" class="btn btn-primary" style="background: linear-gradient(135deg, #1db954, #1ed760); border: none; padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 600;">
+                                <i class="fas fa-wifi"></i> Go to Online Player
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="youtube-player" style="display: none;"></div>
+            </div>
+
+            <!-- Video Info -->
+            <div class="video-info">
+                <h1 class="video-title" id="current-title">Select a track to start playing</h1>
+                <div class="video-artist" id="current-artist">Choose from the playlist on the right</div>
+                <div class="video-stats">
+                    <span><i class="fas fa-clock"></i> <span id="current-duration">--:--</span></span>
+                    <span><i class="fas fa-eye"></i> <span id="current-views">--</span> views</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist Section -->
+        <div class="playlist-section">
+            <!-- Playlist Header -->
+            <div class="playlist-header">
+                <div class="playlist-title">
+                    <i class="fas fa-list"></i>
+                    <span id="playlist-title">Offline Playlist</span>
+                </div>
+                <div class="playlist-subtitle">
+                    <span class="cached-indicator">
+                        <i class="fas fa-download"></i> Cached
+                    </span>
+                    <span id="track-count">0 tracks</span>
+                </div>
+                <div class="playlist-controls">
+                    <button class="control-btn" onclick="shufflePlaylist()" title="Shuffle">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleLoop()" title="Loop" id="loopBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleAutoplay()" title="Autoplay" id="autoplayBtn">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Track List -->
+            <div class="track-list" id="track-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading tracks...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/offline-storage.js"></script>
+    <script>
+        let player;
+        let currentTrackIndex = -1;
+        let isPlaying = false;
+        let isLoop = false;
+        let isAutoplay = true;
+        let tracks = [];
+        let collectionData = null;
+        let offlineStorage;
+
+        // Initialize offline player
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize offline storage
+                if (OfflineStorageManager.isSupported()) {
+                    offlineStorage = new OfflineStorageManager();
+                    await offlineStorage.init();
+                }
+
+                // Get collection ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const collectionId = urlParams.get('id');
+                
+                if (!collectionId) {
+                    showError('No collection ID provided');
+                    return;
+                }
+
+                // Store collection ID for online redirect
+                window.currentCollectionId = collectionId;
+
+                // Load collection data
+                await loadOfflineCollection(parseInt(collectionId));
+                
+                // Set autoplay button as active by default
+                const autoplayBtn = document.getElementById('autoplayBtn');
+                autoplayBtn.classList.add('active');
+                autoplayBtn.title = 'Autoplay: ON';
+                
+                // Set up online detection
+                setupOnlineDetection();
+                
+            } catch (error) {
+                console.error('Error initializing offline player:', error);
+                showError('Failed to load offline collection');
+            }
+        });
+
+        function setupOnlineDetection() {
+            // Show monitoring badge
+            document.getElementById('online-detection-badge').style.display = 'block';
+            
+            // Listen for online event
+            window.addEventListener('online', handleOnlineEvent);
+            
+            // Also check periodically in case the event doesn't fire
+            setInterval(checkOnlineStatus, 5000); // Check every 5 seconds
+        }
+
+        function handleOnlineEvent() {
+            console.log('Back online! Redirecting to online player...');
+            showNotification('🌐 Back online! Redirecting to full player...', 'success');
+            
+            // Wait a moment for the notification to show, then redirect
+            setTimeout(() => {
+                if (window.currentCollectionId) {
+                    window.location.href = `/player/${window.currentCollectionId}/`;
+                }
+            }, 2000);
+        }
+
+        function checkOnlineStatus() {
+            if (navigator.onLine && window.currentCollectionId) {
+                // Double-check with a simple fetch to make sure we're really online
+                fetch('/static/css/style.css', { method: 'HEAD' })
+                    .then(() => {
+                        // We're really online
+                        handleOnlineEvent();
+                    })
+                    .catch(() => {
+                        // Still offline, do nothing
+                    });
+            }
+        }
+
+        async function loadOfflineCollection(collectionId) {
+            try {
+                if (!offlineStorage) {
+                    throw new Error('Offline storage not available');
+                }
+
+                // Get cached data
+                const [collection, cachedTracks] = await Promise.all([
+                    offlineStorage.getCollection(collectionId),
+                    offlineStorage.getTracksByCollectionId(collectionId)
+                ]);
+
+                if (!collection || !cachedTracks.length) {
+                    throw new Error('Collection not found in offline storage');
+                }
+
+                collectionData = collection;
+                tracks = cachedTracks;
+
+                // Update UI
+                document.getElementById('collection-title').textContent = collection.name;
+                document.getElementById('collection-subtitle').textContent = `${cachedTracks.length} tracks available offline`;
+                document.getElementById('playlist-title').textContent = collection.name;
+                document.getElementById('track-count').textContent = `${cachedTracks.length} tracks`;
+
+                // Render track list
+                renderTrackList();
+
+                // Load saved player state
+                await loadPlayerState();
+
+                console.log(`Loaded offline collection "${collection.name}" with ${cachedTracks.length} tracks`);
+
+            } catch (error) {
+                console.error('Error loading offline collection:', error);
+                throw error;
+            }
+        }
+
+        function renderTrackList() {
+            const trackList = document.getElementById('track-list');
+            
+            if (tracks.length === 0) {
+                trackList.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #aaa;">
+                        <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No tracks in this collection</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const tracksHtml = tracks.map((track, index) => `
+                <div class="track-item" 
+                     data-track-id="${track.id}"
+                     data-youtube-id="${track.youtube_id}"
+                     data-title="${track.title}"
+                     data-artist="${track.artist || 'Unknown Artist'}"
+                     data-duration="${track.duration || '--:--'}"
+                     data-views="${track.views || 0}"
+                     data-thumbnail="${track.thumbnail || ''}"
+                     onclick="playTrack(${index})">
+                    
+                    <div class="track-number" id="track-number-${index}">
+                        ${index + 1}
+                    </div>
+                    
+                    ${track.thumbnail ? 
+                        `<img src="${track.thumbnail}" alt="${track.title}" class="track-thumbnail">` :
+                        `<div class="track-thumbnail-placeholder">
+                            <i class="fas fa-music" style="font-size: 0.7rem; color: rgba(255,255,255,0.5);"></i>
+                        </div>`
+                    }
+                    
+                    <div class="track-info">
+                        <div class="track-title">${track.title}</div>
+                        <div class="track-artist">${track.artist || 'Unknown Artist'}</div>
+                    </div>
+                    
+                    <div class="track-duration">${track.duration || '--:--'}</div>
+                </div>
+            `).join('');
+
+            trackList.innerHTML = tracksHtml;
+        }
+
+        function playTrack(index) {
+            if (currentTrackIndex === index && player && isPlaying) {
+                // If same track is playing, just pause/play
+                player.pauseVideo();
+                return;
+            }
+
+            currentTrackIndex = index;
+            const track = tracks[index];
+            
+            // Update video info
+            updateVideoInfo(track);
+            
+            // Update track list UI
+            updateTrackListUI(index);
+            
+            // Save player state
+            savePlayerState();
+            
+            // In offline mode, show track info without video
+            document.getElementById('current-title').textContent = track.title;
+            document.getElementById('current-artist').textContent = track.artist || 'Unknown Artist';
+            
+            // Show a subtle info message instead of warning
+            showNotification('📱 Offline Mode: Track info available, video requires internet', 'info');
+            
+            isPlaying = true;
+        }
+
+        function updateVideoInfo(track) {
+            document.getElementById('current-title').textContent = track.title;
+            document.getElementById('current-artist').textContent = track.artist || 'Unknown Artist';
+            document.getElementById('current-duration').textContent = track.duration || '--:--';
+            document.getElementById('current-views').textContent = (track.views || 0).toLocaleString();
+        }
+
+        function updateTrackListUI(playingIndex) {
+            // Remove all playing states
+            document.querySelectorAll('.track-item').forEach((item, index) => {
+                item.classList.remove('playing');
+                const numberEl = document.getElementById(`track-number-${index}`);
+                if (numberEl) {
+                    numberEl.textContent = index + 1;
+                    numberEl.classList.remove('playing');
+                }
+            });
+            
+            // Add playing state to current track
+            const currentItem = document.querySelector(`[data-track-id="${tracks[playingIndex].id}"]`);
+            if (currentItem) {
+                currentItem.classList.add('playing');
+                const numberEl = document.getElementById(`track-number-${playingIndex}`);
+                if (numberEl) {
+                    numberEl.innerHTML = '<i class="fas fa-volume-up"></i>';
+                    numberEl.classList.add('playing');
+                }
+                
+                // Scroll into view
+                currentItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function shufflePlaylist() {
+            if (tracks.length > 0) {
+                const randomIndex = Math.floor(Math.random() * tracks.length);
+                playTrack(randomIndex);
+            }
+        }
+
+        function toggleLoop() {
+            isLoop = !isLoop;
+            const loopBtn = document.getElementById('loopBtn');
+            loopBtn.classList.toggle('active', isLoop);
+            savePlayerState();
+        }
+
+        function toggleAutoplay() {
+            isAutoplay = !isAutoplay;
+            const autoplayBtn = document.getElementById('autoplayBtn');
+            autoplayBtn.classList.toggle('active', isAutoplay);
+            savePlayerState();
+        }
+
+        async function loadPlayerState() {
+            if (!offlineStorage || !collectionData) return;
+            
+            try {
+                const savedState = await offlineStorage.getPlayerState(collectionData.id);
+                if (savedState) {
+                    isLoop = savedState.isLoop || false;
+                    isAutoplay = savedState.isAutoplay !== undefined ? savedState.isAutoplay : true;
+                    
+                    // Update UI
+                    const loopBtn = document.getElementById('loopBtn');
+                    const autoplayBtn = document.getElementById('autoplayBtn');
+                    
+                    if (isLoop) loopBtn.classList.add('active');
+                    if (isAutoplay) autoplayBtn.classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error loading player state:', error);
+            }
+        }
+
+        async function savePlayerState() {
+            if (!offlineStorage || !collectionData) return;
+            
+            try {
+                await offlineStorage.savePlayerState(collectionData.id, {
+                    currentTrackIndex: currentTrackIndex,
+                    isPlaying: isPlaying,
+                    isLoop: isLoop,
+                    isAutoplay: isAutoplay
+                });
+            } catch (error) {
+                console.error('Error saving player state:', error);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('track-list').innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #ff4444;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button class="btn btn-primary" onclick="goBack()">Back to Offline Manager</button>
+                </div>
+            `;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? '#1db954' : 
+                           type === 'warning' ? '#f59e0b' : 
+                           type === 'error' ? '#ff4444' : '#333';
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
+                z-index: 9999;
+                font-size: 0.9rem;
+                opacity: 0;
+                transition: opacity 0.3s;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : 
+                                  type === 'warning' ? 'exclamation-triangle' : 
+                                  type === 'error' ? 'times' : 'info'}"></i> 
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.style.opacity = '1', 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function goBack() {
+            // Try to go back to offline manager
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // Fallback to offline manager URL
+                window.location.href = '/offline-manager/';
+            }
+        }
+
+        function goToOnlinePlayer() {
+            if (window.currentCollectionId) {
+                showNotification('🌐 Switching to online player...', 'info');
+                setTimeout(() => {
+                    window.location.href = `/player/${window.currentCollectionId}/`;
+                }, 1000);
+            } else {
+                showNotification('Collection ID not found', 'error');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    if (currentTrackIndex >= 0) {
+                        // In offline mode, just show track info
+                        const track = tracks[currentTrackIndex];
+                        showNotification(`🎵 ${track.title} - ${track.artist}`, 'info');
+                    }
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (currentTrackIndex < tracks.length - 1) {
+                        playTrack(currentTrackIndex + 1);
+                    }
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (currentTrackIndex > 0) {
+                        playTrack(currentTrackIndex - 1);
+                    }
+                    break;
+                case 'KeyS':
+                    e.preventDefault();
+                    shufflePlaylist();
+                    break;
+                case 'KeyL':
+                    e.preventDefault();
+                    toggleLoop();
+                    break;
+                case 'KeyA':
+                    e.preventDefault();
+                    toggleAutoplay();
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    goBack();
+                    break;
+                case 'KeyO':
+                    e.preventDefault();
+                    goToOnlinePlayer();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

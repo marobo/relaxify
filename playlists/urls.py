@@ -8,7 +8,7 @@ urlpatterns = [
     path('import/', views.import_youtube, name='import'),
     path('track/<int:playlist_id>/', views.detail, name='detail'),
     path('player/<int:collection_id>/', views.collection_player, name='collection_player'),
-    path('offline/', views.offline, name='offline'),
+    path('offline-manager/', views.offline_manager, name='offline_manager'),
     # Web views
     path('api/tracks/', views.PlaylistListAPIView.as_view(), name='api-tracks-list'),
     path('api/tracks/<int:pk>/', views.PlaylistDetailAPIView.as_view(), name='api-tracks-detail'),

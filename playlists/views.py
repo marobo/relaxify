@@ -62,11 +62,6 @@ def detail(request, playlist_id):
     return render(request, 'playlists/detail.html', {'playlist': playlist})
 
 
-def offline(request):
-    """Offline fallback page"""
-    return render(request, 'playlists/offline.html')
-
-
 # API Views (REST Framework)
 class PlaylistListAPIView(generics.ListAPIView):
     """API endpoint that returns a list of all active tracks"""
@@ -491,3 +486,8 @@ def auth_toggle_view(request):
             'form_to_show': form_to_show,
             'next': next_url,
         })
+
+
+def offline_manager(request):
+    """Offline manager page for managing cached collections"""
+    return render(request, 'playlists/offline_manager.html')

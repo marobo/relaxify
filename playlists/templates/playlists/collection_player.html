@@ -7,6 +7,10 @@
     <link href="{% static 'css/collection_player.css' %}" rel="stylesheet">
 {% endblock %}
 
+{% block extra_js %}
+    <script src="{% static 'js/offline-storage.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <div class="player-container">
         <!-- Video Section -->
@@ -43,6 +47,9 @@
                 <div class="playlist-title">
                     <i class="fas fa-list"></i>
                     {{ collection.name }}
+                    <span id="offline-indicator" class="offline-indicator" style="display: none;">
+                        <i class="fas fa-wifi-slash"></i>
+                    </span>
                 </div>
                 <div class="playlist-subtitle">
                     {% if collection.platform == 'youtube' or collection.platform == 'youtube_music' %}
@@ -50,9 +57,15 @@
                             <i class="fab fa-youtube"></i> YouTube
                         </span>
                     {% endif %}
-                    {{ collection.playlist_count }} tracks
+                    <span id="track-count">{{ collection.playlist_count }} tracks</span>
+                    <span id="cached-indicator" class="cached-indicator" style="display: none;">
+                        <i class="fas fa-download"></i> Cached
+                    </span>
                 </div>
                 <div class="playlist-controls">
+                    <button class="control-btn" onclick="saveForOffline()" title="Save for Offline" id="saveOfflineBtn">
+                        <i class="fas fa-download"></i>
+                    </button>
                     <button class="control-btn" onclick="shufflePlaylist()" title="Shuffle">
                         <i class="fas fa-random"></i>
                     </button>
@@ -122,6 +135,14 @@
         let isLoop = false;
         let isAutoplay = true;
         let tracks = [];
+        let offlineStorage;
+        let isOffline = !navigator.onLine;
+        let collectionData = {
+            id: {{ collection.id }},
+            name: '{{ collection.name|escapejs }}',
+            platform: '{{ collection.platform }}',
+            playlist_count: {{ collection.playlist_count }}
+        };
 
         // Initialize tracks data
         {% if tracks %}
@@ -156,12 +177,23 @@
             // Update track list UI
             updateTrackListUI(index);
             
-            // Load YouTube player
+            // Save player state
+            savePlayerState();
+            
+            // Load YouTube player (only if online or if we have cached video data)
+            if (isOffline) {
+                // In offline mode, show track info without video
+                document.getElementById('current-title').textContent = track.title;
+                document.getElementById('current-artist').textContent = track.artist;
+                showNotification('📱 Offline Mode: Track info available, video requires internet', 'info');
+            } else {
+                // Online mode - load YouTube player
             if (player) {
                 player.loadVideoById(track.youtube_id);
                 hideLoadingPlaceholder();
             } else {
                 initYouTubePlayer(track.youtube_id);
+                }
             }
             
             isPlaying = true;
@@ -338,12 +370,18 @@
             isLoop = !isLoop;
             const loopBtn = document.getElementById('loopBtn');
             loopBtn.classList.toggle('active', isLoop);
+            
+            // Save state
+            savePlayerState();
         }
 
         function toggleAutoplay() {
             isAutoplay = !isAutoplay;
             const autoplayBtn = document.getElementById('autoplayBtn');
             autoplayBtn.classList.toggle('active', isAutoplay);
+            
+            // Save state
+            savePlayerState();
             
             // Show notification
             const notification = document.createElement('div');
@@ -418,9 +456,71 @@
             }
         });
 
-        // Initialize UI when page loads
-        {% if tracks %}
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize offline storage and UI
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Set up online detection for automatic redirect
+            setupOnlineDetection();
+            // Check if we're in offline mode (data loaded from sessionStorage)
+            const offlineMode = sessionStorage.getItem('offlineMode') === 'true';
+            const offlineCollectionData = sessionStorage.getItem('offlineCollection');
+            const offlineTracksData = sessionStorage.getItem('offlineTracks');
+            
+            if (offlineMode && offlineCollectionData && offlineTracksData) {
+                // Load offline data from sessionStorage
+                try {
+                    collectionData = JSON.parse(offlineCollectionData);
+                    tracks = JSON.parse(offlineTracksData);
+                    
+                    // Update UI for offline mode
+                    document.getElementById('current-title').textContent = 'Offline Mode - Cached Playlist';
+                    document.getElementById('current-artist').textContent = `${tracks.length} tracks available offline`;
+                    
+                    // Show offline indicators
+                    showCachedIndicator();
+                    updateOfflineStatus();
+                    
+                    // Clear sessionStorage data
+                    sessionStorage.removeItem('offlineMode');
+                    sessionStorage.removeItem('offlineCollection');
+                    sessionStorage.removeItem('offlineTracks');
+                    
+                    console.log(`Loaded ${tracks.length} tracks from offline session storage`);
+                } catch (error) {
+                    console.error('Error loading offline data from sessionStorage:', error);
+                }
+            } else if (isOffline && !navigator.onLine) {
+                // If we're offline and no session data, redirect to offline player
+                console.log('Offline mode detected, redirecting to offline player...');
+                window.location.href = `/static/offline-player.html?id=${collectionData.id}`;
+                return;
+            } else {
+                // Normal online mode initialization
+                if (OfflineStorageManager.isSupported()) {
+                    offlineStorage = new OfflineStorageManager();
+                    await offlineStorage.init();
+                    
+                    // Check if we're offline and load cached data
+                    if (isOffline) {
+                        await loadOfflineData();
+                    } else {
+                        // Check if collection is cached
+                        const isCached = await offlineStorage.isCollectionCached(collectionData.id);
+                        if (isCached) {
+                            showCachedIndicator();
+                        }
+                    }
+                    
+                    // Load saved player state
+                    await loadPlayerState();
+                } else {
+                    console.warn('Offline storage not supported in this browser');
+                    document.getElementById('saveOfflineBtn').style.display = 'none';
+                }
+                
+                // Update offline status
+                updateOfflineStatus();
+            }
+            
             // Set autoplay button as active by default
             const autoplayBtn = document.getElementById('autoplayBtn');
             autoplayBtn.classList.add('active');
@@ -429,7 +529,178 @@
             // Optional: Auto-start playing first track
             // playTrack(0);
         });
-        {% endif %}
+
+        // Load data from offline storage
+        async function loadOfflineData() {
+            try {
+                const [cachedCollection, cachedTracks] = await Promise.all([
+                    offlineStorage.getCollection(collectionData.id),
+                    offlineStorage.getTracksByCollectionId(collectionData.id)
+                ]);
+                
+                if (cachedCollection && cachedTracks.length > 0) {
+                    // Update collection data
+                    collectionData = { ...collectionData, ...cachedCollection };
+                    
+                    // Update tracks
+                    tracks = cachedTracks;
+                    
+                    // Update UI
+                    document.getElementById('current-title').textContent = 'Offline Mode - Cached Playlist';
+                    document.getElementById('current-artist').textContent = `${cachedTracks.length} tracks available offline`;
+                    
+                    // Show cached indicator
+                    showCachedIndicator();
+                    
+                    console.log(`Loaded ${cachedTracks.length} tracks from offline storage`);
+                } else {
+                    // No cached data available
+                    document.getElementById('current-title').textContent = 'No Offline Data Available';
+                    document.getElementById('current-artist').textContent = 'This playlist is not cached for offline use';
+                }
+            } catch (error) {
+                console.error('Error loading offline data:', error);
+            }
+        }
+
+        // Load saved player state
+        async function loadPlayerState() {
+            try {
+                const savedState = await offlineStorage.getPlayerState(collectionData.id);
+                if (savedState) {
+                    isLoop = savedState.isLoop || false;
+                    isAutoplay = savedState.isAutoplay !== undefined ? savedState.isAutoplay : true;
+                    
+                    // Update UI
+                    const loopBtn = document.getElementById('loopBtn');
+                    const autoplayBtn = document.getElementById('autoplayBtn');
+                    
+                    if (isLoop) loopBtn.classList.add('active');
+                    if (isAutoplay) autoplayBtn.classList.add('active');
+                    
+                    console.log('Loaded saved player state');
+                }
+            } catch (error) {
+                console.error('Error loading player state:', error);
+            }
+        }
+
+        // Save for offline functionality
+        async function saveForOffline() {
+            if (!offlineStorage) {
+                showNotification('Offline storage not supported', 'error');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('saveOfflineBtn');
+            const originalIcon = saveBtn.innerHTML;
+            
+            try {
+                // Show loading state
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                saveBtn.disabled = true;
+                
+                // Save collection and tracks
+                await offlineStorage.saveCollection(collectionData, tracks);
+                
+                // Show success
+                showCachedIndicator();
+                showNotification('Playlist saved for offline use!', 'success');
+                
+                // Update button
+                saveBtn.innerHTML = '<i class="fas fa-check"></i>';
+                saveBtn.title = 'Saved for Offline';
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalIcon;
+                    saveBtn.disabled = false;
+                    saveBtn.title = 'Save for Offline';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error saving for offline:', error);
+                showNotification('Failed to save for offline', 'error');
+                
+                // Reset button
+                saveBtn.innerHTML = originalIcon;
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Show cached indicator
+        function showCachedIndicator() {
+            const indicator = document.getElementById('cached-indicator');
+            indicator.style.display = 'inline-flex';
+            indicator.style.alignItems = 'center';
+            indicator.style.gap = '0.25rem';
+            indicator.style.background = 'rgba(29, 185, 84, 0.2)';
+            indicator.style.color = '#1db954';
+            indicator.style.padding = '0.2rem 0.5rem';
+            indicator.style.borderRadius = '4px';
+            indicator.style.fontSize = '0.7rem';
+            indicator.style.fontWeight = '600';
+        }
+
+        // Update offline status
+        function updateOfflineStatus() {
+            const offlineIndicator = document.getElementById('offline-indicator');
+            
+            if (isOffline) {
+                offlineIndicator.style.display = 'inline-flex';
+                offlineIndicator.style.alignItems = 'center';
+                offlineIndicator.style.gap = '0.25rem';
+                offlineIndicator.style.background = 'rgba(245, 158, 11, 0.2)';
+                offlineIndicator.style.color = '#f59e0b';
+                offlineIndicator.style.padding = '0.2rem 0.5rem';
+                offlineIndicator.style.borderRadius = '4px';
+                offlineIndicator.style.fontSize = '0.7rem';
+                offlineIndicator.style.fontWeight = '600';
+                offlineIndicator.style.marginLeft = '0.5rem';
+            } else {
+                offlineIndicator.style.display = 'none';
+            }
+        }
+
+        // Save player state periodically
+        async function savePlayerState() {
+            if (!offlineStorage) return;
+            
+            try {
+                await offlineStorage.savePlayerState(collectionData.id, {
+                    currentTrackIndex: currentTrackIndex,
+                    isPlaying: isPlaying,
+                    isLoop: isLoop,
+                    isAutoplay: isAutoplay
+                });
+            } catch (error) {
+                console.error('Error saving player state:', error);
+            }
+        }
+
+        // Set up online detection for automatic redirect
+        function setupOnlineDetection() {
+            // Only set up if we're currently in offline mode
+            if (isOffline) {
+                window.addEventListener('online', handleOnlineEvent);
+                
+                // Check periodically
+                setInterval(() => {
+                    if (navigator.onLine && isOffline) {
+                        handleOnlineEvent();
+                    }
+                }, 5000);
+            }
+        }
+
+        function handleOnlineEvent() {
+            console.log('Back online! Refreshing page for full functionality...');
+            showNotification('🌐 Back online! Refreshing for full functionality...', 'success');
+            
+            // Wait a moment for the notification to show, then refresh
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
 
         async function removeTrack(trackId, trackIndex) {
             // Show confirmation dialog
