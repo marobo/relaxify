@@ -27,12 +27,6 @@
                     <p>Waiting for player...</p>
                 </div>
                 <div id="youtube-player"></div>
-                
-                <!-- Video Loading Indicator -->
-                <div class="video-loading-indicator" id="video-loading-indicator">
-                    <div class="video-loading-spinner"></div>
-                    <span class="video-loading-text">Loading video...</span>
-                </div>
             </div>
 
             <!-- Video Info -->
@@ -128,18 +122,6 @@
         </div>
     </div>
 
-    <!-- Track Loading Overlay -->
-    <div class="track-loading-overlay" id="track-loading-overlay">
-        <div class="track-loading-content">
-            <div class="track-loading-spinner"></div>
-            <div class="track-loading-text" id="track-loading-text">Loading track...</div>
-            <div class="track-loading-subtitle" id="track-loading-subtitle">Preparing video player</div>
-            <div class="track-loading-progress">
-                <div class="track-loading-progress-bar"></div>
-            </div>
-        </div>
-    </div>
-
     <script>
         let player;
         let currentTrackIndex = -1;
@@ -185,9 +167,6 @@
             currentTrackIndex = index;
             const track = tracks[index];
             
-            // Show loading animation
-            showTrackLoadingAnimation(track);
-            
             // Update video info
             updateVideoInfo(track);
             
@@ -203,19 +182,15 @@
                 document.getElementById('current-title').textContent = track.title;
                 document.getElementById('current-artist').textContent = track.artist;
                 showNotification('📱 Offline Mode: Track info available, video requires internet', 'info');
-                hideTrackLoadingAnimation();
             } else {
                 // Online mode - load YouTube player
                 if (player) {
-                    showVideoLoadingIndicator();
                     player.loadVideoById(track.youtube_id);
                     // Auto-play the video after loading
                     setTimeout(() => {
                         if (player && player.playVideo) {
                             player.playVideo();
                         }
-                        hideVideoLoadingIndicator();
-                        hideTrackLoadingAnimation();
                     }, 1000); // Small delay to ensure video is loaded
                     hideLoadingPlaceholder();
                 } else {
@@ -372,40 +347,11 @@
             };
             
             hideLoadingPlaceholder();
-            hideVideoLoadingIndicator();
-            hideTrackLoadingAnimation();
             console.log('iPhone iframe player created successfully');
         }
 
         function hideLoadingPlaceholder() {
             document.getElementById('loading-placeholder').style.display = 'none';
-        }
-
-        // Loading Animation Functions
-        function showTrackLoadingAnimation(track) {
-            const overlay = document.getElementById('track-loading-overlay');
-            const text = document.getElementById('track-loading-text');
-            const subtitle = document.getElementById('track-loading-subtitle');
-            
-            text.textContent = `Loading "${track.title}"`;
-            subtitle.textContent = `by ${track.artist}`;
-            
-            overlay.classList.add('show');
-        }
-
-        function hideTrackLoadingAnimation() {
-            const overlay = document.getElementById('track-loading-overlay');
-            overlay.classList.remove('show');
-        }
-
-        function showVideoLoadingIndicator() {
-            const indicator = document.getElementById('video-loading-indicator');
-            indicator.classList.add('show');
-        }
-
-        function hideVideoLoadingIndicator() {
-            const indicator = document.getElementById('video-loading-indicator');
-            indicator.classList.remove('show');
         }
 
         function onPlayerReady(event) {
@@ -415,9 +361,6 @@
             if (player && player.playVideo) {
                 player.playVideo();
             }
-            // Hide loading animations
-            hideVideoLoadingIndicator();
-            hideTrackLoadingAnimation();
         }
 
         function onPlayerStateChange(event) {
