@@ -4,7 +4,7 @@
 {% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container py-4">
     <!-- Filter Section -->
     <div class="d-flex gap-3 flex-wrap mb-3">
         <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">
