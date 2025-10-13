@@ -131,6 +131,7 @@
         let tracks = [];
         let offlineStorage;
         let isOffline = !navigator.onLine;
+        let currentIframe = null; // For iPhone iframe management
         let collectionData = {
             id: {{ collection.id }},
             name: '{{ collection.name|escapejs }}',
@@ -278,19 +279,19 @@
             videoContainer.innerHTML = '';
             
             // Create iframe with iPhone-optimized parameters (based on your working example)
-            const iframe = document.createElement('iframe');
-            iframe.id = 'youtube-player';
-            iframe.width = '100%';
-            iframe.height = '100%';
-            iframe.frameBorder = '0';
-            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-            iframe.allowFullscreen = true;
-            iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+            currentIframe = document.createElement('iframe');
+            currentIframe.id = 'youtube-player';
+            currentIframe.width = '100%';
+            currentIframe.height = '100%';
+            currentIframe.frameBorder = '0';
+            currentIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            currentIframe.allowFullscreen = true;
+            currentIframe.referrerPolicy = 'strict-origin-when-cross-origin';
             
             // Use the working URL format with mute=1 for iPhone autoplay
-            iframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
             
-            iframe.style.cssText = `
+            currentIframe.style.cssText = `
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -299,7 +300,7 @@
                 border: none;
             `;
             
-            videoContainer.appendChild(iframe);
+            videoContainer.appendChild(currentIframe);
             
             // Create a mock player object for iPhone compatibility
             player = {
@@ -317,12 +318,12 @@
                 },
                 loadVideoById: function(id) {
                     console.log('iPhone: Loading new video:', id);
-                    // Recreate the iframe completely for new video
+                    // Completely recreate the iframe for new video
                     createIPhoneIframePlayer(id);
                 },
                 destroy: function() {
-                    if (iframe && iframe.parentNode) {
-                        iframe.parentNode.removeChild(iframe);
+                    if (currentIframe && currentIframe.parentNode) {
+                        currentIframe.parentNode.removeChild(currentIframe);
                     }
                 }
             };
