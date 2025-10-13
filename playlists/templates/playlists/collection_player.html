@@ -255,23 +255,33 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const isAndroid = /Android/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
             
             console.log('Creating YouTube player:', {
                 videoId: videoId,
                 isMobile: isMobile,
                 isIOS: isIOS,
                 isAndroid: isAndroid,
+                isSafari: isSafari,
+                isChrome: isChrome,
                 userAgent: navigator.userAgent
             });
             
-            // Mobile-optimized player configuration
+            // iOS-specific handling
+            if (isIOS) {
+                console.log('iOS device detected - using iOS-specific configuration');
+                return createIOSPlayer(videoId);
+            }
+            
+            // Mobile-optimized player configuration for Android and others
             const playerVars = {
-                    'playsinline': 1,
-                    'rel': 0,
-                    'modestbranding': 1,
-                    'controls': 1,
-                    'showinfo': 0,
-                'autoplay': 0, // Always disable autoplay for better mobile compatibility
+                'playsinline': 1,
+                'rel': 0,
+                'modestbranding': 1,
+                'controls': 1,
+                'showinfo': 0,
+                'autoplay': 0,
                 'fs': 1,
                 'cc_load_policy': 0,
                 'iv_load_policy': 3,
@@ -282,9 +292,9 @@
             
             // Additional mobile-specific parameters
             if (isMobile) {
-                playerVars['disablekb'] = 0; // Enable keyboard controls
-                playerVars['loop'] = 0; // Disable loop for better mobile performance
-                playerVars['start'] = 0; // Start from beginning
+                playerVars['disablekb'] = 0;
+                playerVars['loop'] = 0;
+                playerVars['start'] = 0;
             }
             
             try {
@@ -293,20 +303,148 @@
                     width: '100%',
                     videoId: videoId,
                     playerVars: playerVars,
-                events: {
-                    'onReady': onPlayerReady,
+                    events: {
+                        'onReady': onPlayerReady,
                         'onStateChange': onPlayerStateChange,
                         'onError': onPlayerError
-                }
-            });
-            
+                    }
+                });
+                
                 console.log('YouTube player created successfully');
-            hideLoadingPlaceholder();
+                hideLoadingPlaceholder();
             } catch (error) {
                 console.error('Error creating YouTube player:', error);
                 showNotification('❌ Failed to create video player. Trying alternative method...', 'error');
                 createFallbackPlayer(videoId);
             }
+        }
+
+        function createIOSPlayer(videoId) {
+            console.log('Creating iOS-optimized player for video:', videoId);
+            
+            // For iOS, we'll use a different approach
+            // First try the iframe method which works better on iOS
+            const videoContainer = document.getElementById('video-container');
+            
+            // Clear any existing content
+            videoContainer.innerHTML = '';
+            
+            // Create iframe with iOS-optimized parameters
+            const iframe = document.createElement('iframe');
+            iframe.id = 'youtube-player-ios';
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&playsinline=1&rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&origin=${encodeURIComponent(window.location.origin)}&enablejsapi=1`;
+            iframe.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            `;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+            iframe.setAttribute('webkit-playsinline', 'true');
+            iframe.setAttribute('playsinline', 'true');
+            
+            videoContainer.appendChild(iframe);
+            
+            // Create a mock player object for iOS compatibility
+            player = {
+                playVideo: function() {
+                    console.log('iOS: Attempting to play video');
+                    // For iOS, we need user interaction to play
+                    showIOSPlayButton(videoId);
+                },
+                pauseVideo: function() {
+                    console.log('iOS: Pause not available in iframe mode');
+                },
+                stopVideo: function() {
+                    console.log('iOS: Stop not available in iframe mode');
+                },
+                getPlayerState: function() {
+                    return 5; // CUED state
+                },
+                loadVideoById: function(id) {
+                    console.log('iOS: Loading new video:', id);
+                    iframe.src = `https://www.youtube.com/embed/${id}?autoplay=0&playsinline=1&rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&origin=${encodeURIComponent(window.location.origin)}&enablejsapi=1`;
+                },
+                destroy: function() {
+                    if (iframe && iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                    }
+                }
+            };
+            
+            hideLoadingPlaceholder();
+            showIOSPlayButton(videoId);
+            
+            console.log('iOS player created successfully');
+        }
+
+        function showIOSPlayButton(videoId) {
+            // Remove existing play button
+            hideMobilePlayButton();
+            
+            const playButton = document.createElement('div');
+            playButton.id = 'ios-play-button';
+            playButton.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(255, 0, 0, 0.9);
+                color: white;
+                border: 3px solid white;
+                border-radius: 50%;
+                width: 120px;
+                height: 120px;
+                font-size: 3rem;
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                box-shadow: 0 6px 30px rgba(255, 0, 0, 0.5);
+            `;
+            playButton.innerHTML = '<i class="fas fa-play" style="margin-left: 6px;"></i>';
+            
+            // iOS-specific click handler
+            playButton.onclick = function() {
+                console.log('iOS play button clicked');
+                
+                // Hide the play button
+                this.style.display = 'none';
+                
+                // Try to play the video by updating the iframe src with autoplay
+                const iframe = document.getElementById('youtube-player-ios');
+                if (iframe) {
+                    const currentSrc = iframe.src;
+                    const newSrc = currentSrc.replace('autoplay=0', 'autoplay=1');
+                    iframe.src = newSrc;
+                    console.log('iOS: Updated iframe src with autoplay');
+                }
+                
+                // Show a message
+                showNotification('🎵 Video should start playing now!', 'success');
+            };
+            
+            // Add touch events for better iOS interaction
+            playButton.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            });
+            
+            playButton.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.style.transform = 'translate(-50%, -50%) scale(1)';
+            });
+            
+            const videoContainer = document.getElementById('video-container');
+            videoContainer.appendChild(playButton);
+            
+            console.log('iOS play button created');
         }
 
         function hideLoadingPlaceholder() {
@@ -501,6 +639,11 @@
             const playButton = document.getElementById('mobile-play-button');
             if (playButton) {
                 playButton.remove();
+            }
+            
+            const iosPlayButton = document.getElementById('ios-play-button');
+            if (iosPlayButton) {
+                iosPlayButton.remove();
             }
         }
 
@@ -874,19 +1017,25 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
             const isAndroid = /Android/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+            const isChrome = /Chrome/.test(navigator.userAgent);
             
             const debugInfo = {
                 userAgent: navigator.userAgent,
                 isMobile: isMobile,
                 isIOS: isIOS,
                 isAndroid: isAndroid,
+                isSafari: isSafari,
+                isChrome: isChrome,
                 hasYT: !!window.YT,
                 hasPlayer: !!player,
                 playerState: player ? player.getPlayerState() : 'No player',
                 currentTrackIndex: currentTrackIndex,
                 tracksLength: tracks.length,
                 online: navigator.onLine,
-                currentTrack: currentTrackIndex >= 0 ? tracks[currentTrackIndex] : null
+                currentTrack: currentTrackIndex >= 0 ? tracks[currentTrackIndex] : null,
+                hasIOSPlayer: !!document.getElementById('youtube-player-ios'),
+                hasIOSPlayButton: !!document.getElementById('ios-play-button')
             };
             
             console.log('Mobile Debug Info:', debugInfo);
@@ -896,8 +1045,11 @@
                 Mobile: ${isMobile}
                 iOS: ${isIOS}
                 Android: ${isAndroid}
+                Safari: ${isSafari}
+                Chrome: ${isChrome}
                 YT API: ${debugInfo.hasYT}
                 Player: ${debugInfo.hasPlayer}
+                iOS Player: ${debugInfo.hasIOSPlayer}
                 State: ${debugInfo.playerState}
                 Track: ${currentTrackIndex + 1}/${tracks.length}
             `.replace(/\s+/g, ' ').trim();

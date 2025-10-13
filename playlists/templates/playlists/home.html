@@ -208,9 +208,36 @@ function playTrack(videoId, title) {
 }
 
 function initPlayer(videoId) {
-    // Detect mobile device
+    // Enhanced mobile device detection
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    console.log('Home page player - Device info:', {
+        isMobile: isMobile,
+        isIOS: isIOS,
+        videoId: videoId
+    });
+    
+    // For iOS, use iframe approach
+    if (isIOS) {
+        console.log('iOS detected - using iframe player for home page');
+        const playerElement = document.getElementById('player');
+        playerElement.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=0&playsinline=1&rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&origin=${encodeURIComponent(window.location.origin)}"
+                width="640" 
+                height="390" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                webkit-playsinline="true"
+                playsinline="true">
+            </iframe>
+        `;
+        return;
+    }
+    
+    // For Android and desktop, use YouTube API
     player = new YT.Player('player', {
         height: '390',
         width: '640',
