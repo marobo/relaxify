@@ -197,56 +197,32 @@ function playTrack(videoId, title) {
             document.head.appendChild(script);
             
             window.onYouTubeIframeAPIReady = function() {
-                initPlayer(videoId);
+                player = new YT.Player('player', {
+                    height: '390',
+                    width: '640',
+                    videoId: videoId,
+                    playerVars: {
+                        'playsinline': 1,
+                        'rel': 0,
+                        'modestbranding': 1
+                    }
+                });
             };
         } else {
-            initPlayer(videoId);
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1,
+                    'rel': 0,
+                    'modestbranding': 1
+                }
+            });
         }
     }
     
     playerModal.show();
-}
-
-// Track if this is the first video for iPhone
-let isFirstHomeVideo = true;
-
-function initPlayer(videoId) {
-    // Detect iPhone to use iframe instead of YouTube API
-    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    
-    if (isIPhone) {
-        // Use direct iframe for iPhone (works better)
-        const playerElement = document.getElementById('player');
-        
-        // Use mute=1 only for the first video
-        const muteParam = isFirstHomeVideo ? '&mute=1' : '';
-        isFirstHomeVideo = false; // Mark that we've played the first video
-        
-        playerElement.innerHTML = `
-            <iframe
-                id="youtube-player"
-                width="640"
-                height="390"
-                frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowfullscreen
-                referrerpolicy="strict-origin-when-cross-origin"
-                src="https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1">
-            </iframe>
-        `;
-    } else {
-        // Use YouTube API for other devices
-        player = new YT.Player('player', {
-            height: '390',
-            width: '640',
-            videoId: videoId,
-            playerVars: {
-                'playsinline': 1,
-                'rel': 0,
-                'modestbranding': 1
-            }
-        });
-    }
 }
 
 // Stop video when modal is closed
@@ -268,66 +244,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-// Save for offline functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const saveOfflineButtons = document.querySelectorAll('.save-offline-btn');
-    saveOfflineButtons.forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.stopPropagation();
-            const trackId = this.dataset.trackId;
-            const icon = this.querySelector('i');
-            
-            // Show loading state
-            icon.className = 'fas fa-spinner fa-spin';
-            this.disabled = true;
-            
-            try {
-                // Fetch track data and save to IndexedDB
-                const response = await fetch(`/api/tracks/${trackId}/`);
-                const track = await response.json();
-                
-                // Save to IndexedDB
-                await saveTrackOffline(track);
-                
-                // Update UI
-                icon.className = 'fas fa-check text-success';
-                this.title = 'Saved offline';
-                
-            } catch (error) {
-                console.error('Error saving track offline:', error);
-                icon.className = 'fas fa-download';
-                this.disabled = false;
-            }
-        });
-    });
-});
-
-// IndexedDB functions
-async function saveTrackOffline(track) {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('relaxify-db', 1);
-        
-        request.onerror = () => reject(request.error);
-        
-        request.onsuccess = () => {
-            const db = request.result;
-            const transaction = db.transaction(['tracks'], 'readwrite');
-            const store = transaction.objectStore('tracks');
-            
-            const addRequest = store.put(track);
-            addRequest.onsuccess = () => resolve();
-            addRequest.onerror = () => reject(addRequest.error);
-        };
-        
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('tracks')) {
-                const store = db.createObjectStore('tracks', { keyPath: 'id' });
-                store.createIndex('title', 'title', { unique: false });
-            }
-        };
-    });
-}
 </script>
 {% endblock %} 
