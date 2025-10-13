@@ -186,6 +186,12 @@
                 // Online mode - load YouTube player
             if (player) {
                 player.loadVideoById(track.youtube_id);
+                // Auto-play the video after loading
+                setTimeout(() => {
+                    if (player && player.playVideo) {
+                        player.playVideo();
+                    }
+                }, 1000); // Small delay to ensure video is loaded
                 hideLoadingPlaceholder();
             } else {
                 initYouTubePlayer(track.youtube_id);
@@ -291,7 +297,7 @@
             
             // Use mute=1 only for the first video, then unmute for subsequent videos
             const muteParam = isFirstVideo ? '&mute=1' : '';
-            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1&start=0`;
             
             // Mark that we've played the first video
             isFirstVideo = false;
@@ -311,6 +317,13 @@
             player = {
                 playVideo: function() {
                     console.log('iPhone: Video should already be playing with autoplay');
+                    // Try to trigger play by refreshing the iframe with autoplay
+                    if (currentIframe) {
+                        const currentSrc = currentIframe.src;
+                        if (!currentSrc.includes('autoplay=1')) {
+                            currentIframe.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                        }
+                    }
                 },
                 pauseVideo: function() {
                     console.log('iPhone: Pause not available in iframe mode');
@@ -345,6 +358,10 @@
         function onPlayerReady(event) {
             // Player is ready
             console.log('YouTube player ready');
+            // Auto-play the video when ready
+            if (player && player.playVideo) {
+                player.playVideo();
+            }
         }
 
         function onPlayerStateChange(event) {
