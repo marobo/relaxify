@@ -28,17 +28,6 @@
                 </div>
                 <div id="youtube-player"></div>
             </div>
-            <iframe
-  id="youtube-player"
-  width="100%"
-  height="100%"
-  frameborder="0"
-  title="Rahmi Ayu - Bukan untuk ku | COVER"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowfullscreen
-  referrerpolicy="strict-origin-when-cross-origin"
-  src="https://www.youtube.com/embed/9SYUnkDhBPk?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1">
-</iframe>
 
             <!-- Video Info -->
             <div class="video-info">
@@ -252,105 +241,103 @@
         }
 
         function createPlayer(videoId) {
-            // Detect iPhone to disable autoplay
+            // Detect iPhone to use iframe instead of YouTube API
             const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
             
-            player = new YT.Player('youtube-player', {
-                height: '100%',
-                width: '100%',
-                videoId: videoId,
-                playerVars: {
-                    'playsinline': 1,
-                    'rel': 0,
-                    'modestbranding': 1,
-                    'controls': 1,
-                    'showinfo': 0,
-                    'autoplay': isIPhone ? 0 : 1  // Disable autoplay on iPhone
+            if (isIPhone) {
+                // Use direct iframe for iPhone (works better)
+                createIPhoneIframePlayer(videoId);
+            } else {
+                // Use YouTube API for other devices
+                player = new YT.Player('youtube-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'playsinline': 1,
+                        'rel': 0,
+                        'modestbranding': 1,
+                        'controls': 1,
+                        'showinfo': 0,
+                        'autoplay': 1
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+                
+                hideLoadingPlaceholder();
+            }
+        }
+
+        function createIPhoneIframePlayer(videoId) {
+            const videoContainer = document.getElementById('video-container');
+            
+            // Clear existing content
+            videoContainer.innerHTML = '';
+            
+            // Create iframe with iPhone-optimized parameters (based on your working example)
+            const iframe = document.createElement('iframe');
+            iframe.id = 'youtube-player';
+            iframe.width = '100%';
+            iframe.height = '100%';
+            iframe.frameBorder = '0';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+            iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+            
+            // Use the working URL format with mute=1 for iPhone autoplay
+            iframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+            
+            iframe.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            `;
+            
+            videoContainer.appendChild(iframe);
+            
+            // Create a mock player object for iPhone compatibility
+            player = {
+                playVideo: function() {
+                    console.log('iPhone: Video should already be playing with autoplay');
                 },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                pauseVideo: function() {
+                    console.log('iPhone: Pause not available in iframe mode');
+                },
+                stopVideo: function() {
+                    console.log('iPhone: Stop not available in iframe mode');
+                },
+                getPlayerState: function() {
+                    return 1; // PLAYING state
+                },
+                loadVideoById: function(id) {
+                    console.log('iPhone: Loading new video:', id);
+                    iframe.src = `https://www.youtube.com/embed/${id}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+                },
+                destroy: function() {
+                    if (iframe && iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                    }
                 }
-            });
+            };
             
             hideLoadingPlaceholder();
+            console.log('iPhone iframe player created successfully');
         }
 
         function hideLoadingPlaceholder() {
             document.getElementById('loading-placeholder').style.display = 'none';
         }
 
-        function showIPhonePlayButton() {
-            // Remove existing play button if any
-            const existingBtn = document.getElementById('iphone-play-btn');
-            if (existingBtn) {
-                existingBtn.remove();
-            }
-            
-            const playButton = document.createElement('div');
-            playButton.id = 'iphone-play-btn';
-            playButton.style.cssText = `
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: rgba(255, 0, 0, 0.9);
-                color: white;
-                border: 3px solid white;
-                border-radius: 50%;
-                width: 100px;
-                height: 100px;
-                font-size: 2.5rem;
-                cursor: pointer;
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s ease;
-                box-shadow: 0 4px 20px rgba(255, 0, 0, 0.5);
-            `;
-            playButton.innerHTML = '<i class="fas fa-play" style="margin-left: 4px;"></i>';
-            
-            playButton.onclick = function() {
-                if (player && player.playVideo) {
-                    player.playVideo();
-                    this.style.display = 'none';
-                }
-            };
-            
-            // Add YouTube link button for iPhone
-            const youtubeBtn = document.createElement('button');
-            youtubeBtn.style.cssText = `
-                position: absolute;
-                bottom: 20px;
-                right: 20px;
-                background: #ff0000;
-                color: white;
-                border: none;
-                padding: 0.5rem 1rem;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                cursor: pointer;
-                z-index: 1001;
-            `;
-            youtubeBtn.innerHTML = 'Open in YouTube';
-            youtubeBtn.onclick = function() {
-                const currentTrack = tracks[currentTrackIndex];
-                if (currentTrack) {
-                    window.open(`https://www.youtube.com/watch?v=${currentTrack.youtube_id}`, '_blank');
-                }
-            };
-            
-            videoContainer.appendChild(youtubeBtn);
-            videoContainer.appendChild(playButton);
-        }
 
         function onPlayerReady(event) {
             // Player is ready
-            const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            if (isIPhone) {
-                showIPhonePlayButton();
-            }
+            console.log('YouTube player ready');
         }
 
         function onPlayerStateChange(event) {
@@ -363,11 +350,6 @@
                 }
             } else if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
-                // Hide iPhone play button when video starts
-                const playBtn = document.getElementById('iphone-play-btn');
-                if (playBtn) {
-                    playBtn.style.display = 'none';
-                }
             } else if (event.data == YT.PlayerState.PAUSED) {
                 isPlaying = false;
             }

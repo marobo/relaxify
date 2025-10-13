@@ -208,16 +208,37 @@ function playTrack(videoId, title) {
 }
 
 function initPlayer(videoId) {
-    player = new YT.Player('player', {
-        height: '390',
-        width: '640',
-        videoId: videoId,
-        playerVars: {
-            'playsinline': 1,
-            'rel': 0,
-            'modestbranding': 1
-        }
-    });
+    // Detect iPhone to use iframe instead of YouTube API
+    const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    
+    if (isIPhone) {
+        // Use direct iframe for iPhone (works better)
+        const playerElement = document.getElementById('player');
+        playerElement.innerHTML = `
+            <iframe
+                id="youtube-player"
+                width="640"
+                height="390"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+                src="https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1">
+            </iframe>
+        `;
+    } else {
+        // Use YouTube API for other devices
+        player = new YT.Player('player', {
+            height: '390',
+            width: '640',
+            videoId: videoId,
+            playerVars: {
+                'playsinline': 1,
+                'rel': 0,
+                'modestbranding': 1
+            }
+        });
+    }
 }
 
 // Stop video when modal is closed
