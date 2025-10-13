@@ -1,20 +1,20 @@
 {% extends 'base_site.html' %}
 {% load static %}
 
-{% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}
+{% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}                                                         
 
 {% block content %}
 <div class="container py-4">
     <!-- Filter Section -->
     <div class="d-flex gap-3 flex-wrap mb-3">
-        <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'all' %}active{% else %}bg-outline-primary{% endif %}">🎼 All</span>
+        <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">                                                                  
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'all' %}active{% else %}bg-outline-primary{% endif %}">🎼 All</span>            
         </a>
-        <a href="{% url 'playlists:home' %}?filter=collections" class="filter-link" data-filter="collections">
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'collections' %}active{% else %}bg-outline-primary{% endif %}">🎵 Collections</span>
+        <a href="{% url 'playlists:home' %}?filter=collections" class="filter-link" data-filter="collections">                                                  
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'collections' %}active{% else %}bg-outline-primary{% endif %}">🎵 Collections</span>                                                                            
         </a>
-        <a href="{% url 'playlists:home' %}?filter=tracks" class="filter-link" data-filter="tracks">
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'tracks' %}active{% else %}bg-outline-primary{% endif %}">🎧 Tracks</span>
+        <a href="{% url 'playlists:home' %}?filter=tracks" class="filter-link" data-filter="tracks">                                                            
+            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'tracks' %}active{% else %}bg-outline-primary{% endif %}">🎧 Tracks</span>      
         </a>
     </div>
 
@@ -48,18 +48,18 @@
                         {% endif %}
                         
                         {% if collection.thumbnail_url %}
-                            <a href="{% url 'playlists:collection_player' collection.id %}">
-                                <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">
+                            <a href="{% url 'playlists:collection_player' collection.id %}">                                                                    
+                                <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">                             
                             </a>
                         {% else %}
                             <div class="collection-placeholder">
-                                <a href="{% url 'playlists:collection_player' collection.id %}">
+                                <a href="{% url 'playlists:collection_player' collection.id %}">                                                                
                                     {% if collection.platform == 'youtube' %}
-                                        <i class="fab fa-youtube text-white icon-large"></i>
-                                    {% elif collection.platform == 'youtube_music' %}
-                                        <i class="fab fa-youtube text-white icon-large"></i>
+                                        <i class="fab fa-youtube text-white icon-large"></i>                                                                    
+                                    {% elif collection.platform == 'youtube_music' %}                                                                           
+                                        <i class="fab fa-youtube text-white icon-large"></i>                                                                    
                                     {% else %}
-                                        <i class="fas fa-layer-group text-white icon-large"></i>
+                                        <i class="fas fa-layer-group text-white icon-large"></i>                                                                
                                     {% endif %}
                                 </a>
                             </div>
@@ -76,12 +76,12 @@
                         <div class="collection-stats">
                             <div class="collection-stat">
                                 <i class="fas fa-music"></i>
-                                <span>{{ collection.playlist_count }} track{{ collection.playlist_count|pluralize }}</span>
+                                <span>{{ collection.playlist_count }} track{{ collection.playlist_count|pluralize }}</span>                                     
                             </div>
                             {% if collection.total_duration_formatted %}
                                 <div class="collection-stat">
                                     <i class="fas fa-clock"></i>
-                                    <span>{{ collection.total_duration_formatted }}</span>
+                                    <span>{{ collection.total_duration_formatted }}</span>                                                                      
                                 </div>
                             {% endif %}
                         </div>
@@ -106,12 +106,12 @@
             <div class="row">
                 {% for track in individual_tracks %}
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="track-card" onclick="playTrack('{{ track.youtube_id }}', '{{ track.title|escapejs }}')">
+                    <div class="track-card" onclick="playTrack('{{ track.youtube_id }}', '{{ track.title|escapejs }}')">                                        
                         {% if track.thumbnail_url %}
-                            <img src="{{ track.thumbnail_url }}" class="track-thumbnail" alt="{{ track.title }}">
+                            <img src="{{ track.thumbnail_url }}" class="track-thumbnail" alt="{{ track.title }}">                                               
                         {% else %}
-                            <div class="track-thumbnail track-thumbnail-placeholder">
-                                <i class="fas fa-music text-white icon-medium"></i>
+                            <div class="track-thumbnail track-thumbnail-placeholder">                                                                           
+                                <i class="fas fa-music text-white icon-medium"></i>                                                                             
                             </div>
                         {% endif %}
                         
@@ -123,7 +123,7 @@
                         
                         <div class="track-meta">
                             <span>
-                                <i class="fas fa-eye"></i> {{ track.view_count|floatformat:0 }}
+                                <i class="fas fa-eye"></i> {{ track.view_count|floatformat:0 }}                                                                 
                             </span>
                             {% if track.duration %}
                                 <span>{{ track.duration }}</span>
@@ -141,7 +141,7 @@
         <div class="empty-state">
             <i class="fas fa-music"></i>
             <h3>No music collections yet</h3>
-            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>
+            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>                                                                     
         </div>
     {% endif %}
     <div class="import-cta" data-import-url="{% url 'playlists:import' %}">
@@ -153,7 +153,7 @@
         <a href="{% url 'playlists:import' %}" class="btn btn-primary">
             <i class="fas fa-download"></i> Import Playlist
         </a>
-        <a href="{% url 'playlists:offline_manager' %}" class="btn btn-outline-light ms-2">
+        <a href="{% url 'playlists:offline_manager' %}" class="btn btn-outline-light ms-2">                                                                     
             <i class="fas fa-wifi-slash"></i> Offline Manager
         </a>
     </div>
@@ -164,8 +164,8 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content bg-dark">
             <div class="modal-header">
-                <h5 class="modal-title text-white" id="playerModalTitle">Now Playing</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white" id="playerModalTitle">Now Playing</h5>                                                                       
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>                                                       
             </div>
             <div class="modal-body">
                 <div id="player"></div>
@@ -182,7 +182,7 @@ let playerModal;
 
 function playTrack(videoId, title) {
     if (!playerModal) {
-        playerModal = new bootstrap.Modal(document.getElementById('playerModal'));
+        playerModal = new bootstrap.Modal(document.getElementById('playerModal'));                                                                              
     }
     
     document.getElementById('playerModalTitle').textContent = title;
@@ -197,36 +197,31 @@ function playTrack(videoId, title) {
             document.head.appendChild(script);
             
             window.onYouTubeIframeAPIReady = function() {
-                player = new YT.Player('player', {
-                    height: '390',
-                    width: '640',
-                    videoId: videoId,
-                    playerVars: {
-                        'playsinline': 1,
-                        'rel': 0,
-                        'modestbranding': 1
-                    }
-                });
+                initPlayer(videoId);
             };
         } else {
-            player = new YT.Player('player', {
-                height: '390',
-                width: '640',
-                videoId: videoId,
-                playerVars: {
-                    'playsinline': 1,
-                    'rel': 0,
-                    'modestbranding': 1
-                }
-            });
+            initPlayer(videoId);
         }
     }
     
     playerModal.show();
 }
 
+function initPlayer(videoId) {
+    player = new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: videoId,
+        playerVars: {
+            'playsinline': 1,
+            'rel': 0,
+            'modestbranding': 1
+        }
+    });
+}
+
 // Stop video when modal is closed
-document.getElementById('playerModal').addEventListener('hidden.bs.modal', function() {
+document.getElementById('playerModal').addEventListener('hidden.bs.modal', function() {                                                                         
     if (player && player.pauseVideo) {
         player.pauseVideo();
     }
@@ -244,5 +239,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Save for offline functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const saveOfflineButtons = document.querySelectorAll('.save-offline-btn');
+    saveOfflineButtons.forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const trackId = this.dataset.trackId;
+            const icon = this.querySelector('i');
+            
+            // Show loading state
+            icon.className = 'fas fa-spinner fa-spin';
+            this.disabled = true;
+            
+            try {
+                // Fetch track data and save to IndexedDB
+                const response = await fetch(`/api/tracks/${trackId}/`);
+                const track = await response.json();
+                
+                // Save to IndexedDB
+                await saveTrackOffline(track);
+                
+                // Update UI
+                icon.className = 'fas fa-check text-success';
+                this.title = 'Saved offline';
+                
+            } catch (error) {
+                console.error('Error saving track offline:', error);
+                icon.className = 'fas fa-download';
+                this.disabled = false;
+            }
+        });
+    });
+});
+
+// IndexedDB functions
+async function saveTrackOffline(track) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('relaxify-db', 1);
+        
+        request.onerror = () => reject(request.error);
+        
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction(['tracks'], 'readwrite');
+            const store = transaction.objectStore('tracks');
+            
+            const addRequest = store.put(track);
+            addRequest.onsuccess = () => resolve();
+            addRequest.onerror = () => reject(addRequest.error);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('tracks')) {
+                const store = db.createObjectStore('tracks', { keyPath: 'id' });
+                store.createIndex('title', 'title', { unique: false });
+            }
+        };
+    });
+}
 </script>
-{% endblock %} 
+{% endblock %}
