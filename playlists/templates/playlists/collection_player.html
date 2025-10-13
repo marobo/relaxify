@@ -184,9 +184,9 @@
                 // Online mode - load YouTube player
                 showLoadingPlaceholder();
 
-                if (player) {
+            if (player) {
                     try {
-                        player.loadVideoById(track.youtube_id);
+                player.loadVideoById(track.youtube_id);
                     } catch (error) {
                         console.error('Error loading video:', error);
                         showNotification('❌ Error loading video. Trying alternative method...', 'error');
@@ -195,11 +195,11 @@
                             initYouTubePlayer(track.youtube_id);
                         }, 1000);
                     }
-                } else {
-                    initYouTubePlayer(track.youtube_id);
+            } else {
+                initYouTubePlayer(track.youtube_id);
                 }
             }
-
+            
             isPlaying = true;
         }
 
@@ -251,34 +251,62 @@
         }
 
         function createPlayer(videoId) {
-            // Detect mobile device
+            // Enhanced mobile device detection
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            player = new YT.Player('youtube-player', {
-                height: '100%',
-                width: '100%',
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            console.log('Creating YouTube player:', {
                 videoId: videoId,
-                playerVars: {
+                isMobile: isMobile,
+                isIOS: isIOS,
+                isAndroid: isAndroid,
+                userAgent: navigator.userAgent
+            });
+            
+            // Mobile-optimized player configuration
+            const playerVars = {
                     'playsinline': 1,
                     'rel': 0,
                     'modestbranding': 1,
                     'controls': 1,
                     'showinfo': 0,
-                    'autoplay': isMobile ? 0 : 1, // Disable autoplay on mobile
-                    'fs': 1, // Allow fullscreen
-                    'cc_load_policy': 0, // Don't load captions by default
-                    'iv_load_policy': 3, // Hide video annotations
-                    'enablejsapi': 1, // Enable JavaScript API
-                    'origin': window.location.origin // Set origin for security
-                },
+                'autoplay': 0, // Always disable autoplay for better mobile compatibility
+                'fs': 1,
+                'cc_load_policy': 0,
+                'iv_load_policy': 3,
+                'enablejsapi': 1,
+                'origin': window.location.origin,
+                'widget_referrer': window.location.origin
+            };
+            
+            // Additional mobile-specific parameters
+            if (isMobile) {
+                playerVars['disablekb'] = 0; // Enable keyboard controls
+                playerVars['loop'] = 0; // Disable loop for better mobile performance
+                playerVars['start'] = 0; // Start from beginning
+            }
+            
+            try {
+                player = new YT.Player('youtube-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: playerVars,
                 events: {
                     'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError
+                        'onStateChange': onPlayerStateChange,
+                        'onError': onPlayerError
                 }
             });
             
+                console.log('YouTube player created successfully');
             hideLoadingPlaceholder();
+            } catch (error) {
+                console.error('Error creating YouTube player:', error);
+                showNotification('❌ Failed to create video player. Trying alternative method...', 'error');
+                createFallbackPlayer(videoId);
+            }
         }
 
         function hideLoadingPlaceholder() {
@@ -289,10 +317,126 @@
             document.getElementById('loading-placeholder').style.display = 'flex';
         }
 
+        function createFallbackPlayer(videoId) {
+            console.log('Creating fallback player for video:', videoId);
+            
+            const videoContainer = document.getElementById('video-container');
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.id = 'fallback-player';
+            fallbackDiv.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                text-align: center;
+                padding: 2rem;
+                z-index: 1000;
+            `;
+            
+            const currentTrack = tracks[currentTrackIndex];
+            fallbackDiv.innerHTML = `
+                <div style="margin-bottom: 2rem;">
+                    <i class="fas fa-play-circle" style="font-size: 4rem; color: #ff0000; margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 1rem;">${currentTrack ? currentTrack.title : 'Video'}</h3>
+                    <p style="color: #aaa; margin-bottom: 2rem;">Click below to watch this video</p>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                    <button onclick="openInYouTube('${videoId}')" style="
+                        background: #ff0000;
+                        color: white;
+                        border: none;
+                        padding: 1rem 2rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1.1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        min-width: 200px;
+                        justify-content: center;
+                    ">
+                        <i class="fab fa-youtube"></i>
+                        Watch on YouTube
+                    </button>
+                    <button onclick="createIframePlayer('${videoId}')" style="
+                        background: #1db954;
+                        color: white;
+                        border: none;
+                        padding: 1rem 2rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1.1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        min-width: 200px;
+                        justify-content: center;
+                    ">
+                        <i class="fas fa-play"></i>
+                        Try Simple Player
+                    </button>
+                    <button onclick="retryPlayer('${videoId}')" style="
+                        background: #333;
+                        color: white;
+                        border: none;
+                        padding: 1rem 2rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1.1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        min-width: 200px;
+                        justify-content: center;
+                    ">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            `;
+            
+            videoContainer.appendChild(fallbackDiv);
+        }
+
+        function retryPlayer(videoId) {
+            console.log('Retrying player creation for video:', videoId);
+            
+            // Remove fallback player
+            const fallback = document.getElementById('fallback-player');
+            if (fallback) {
+                fallback.remove();
+            }
+            
+            // Clear existing player
+            if (player) {
+                try {
+                    player.destroy();
+                } catch (e) {
+                    console.log('Error destroying player:', e);
+                }
+                player = null;
+            }
+            
+            // Show loading
+            showLoadingPlaceholder();
+            
+            // Wait a moment then retry
+            setTimeout(() => {
+                createPlayer(videoId);
+            }, 1000);
+        }
+
         function showMobilePlayButton() {
             // Remove existing mobile play button if any
             hideMobilePlayButton();
-
+            
             const playButton = document.createElement('div');
             playButton.id = 'mobile-play-button';
             playButton.style.cssText = `
@@ -300,13 +444,13 @@
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.9);
                 color: white;
-                border: none;
+                border: 2px solid #ff0000;
                 border-radius: 50%;
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
                 cursor: pointer;
                 z-index: 1000;
                 display: flex;
@@ -314,16 +458,43 @@
                 justify-content: center;
                 transition: all 0.3s ease;
                 backdrop-filter: blur(10px);
+                box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
             `;
-            playButton.innerHTML = '<i class="fas fa-play"></i>';
+            playButton.innerHTML = '<i class="fas fa-play" style="margin-left: 4px;"></i>';
+            
+            // Add click handler with better error handling
             playButton.onclick = function() {
-                if (player && player.playVideo) {
-                    player.playVideo();
+                console.log('Mobile play button clicked');
+                try {
+                    if (player && typeof player.playVideo === 'function') {
+                        player.playVideo();
+                        console.log('Play video called successfully');
+                    } else {
+                        console.error('Player not ready or playVideo not available');
+                        showNotification('❌ Player not ready. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error playing video:', error);
+                    showNotification('❌ Error playing video. Please try again.', 'error');
                 }
             };
-
+            
+            // Add touch event for better mobile interaction
+            playButton.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                this.style.transform = 'translate(-50%, -50%) scale(0.95)';
+            });
+            
+            playButton.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                this.style.transform = 'translate(-50%, -50%) scale(1)';
+                this.onclick();
+            });
+            
             const videoContainer = document.getElementById('video-container');
             videoContainer.appendChild(playButton);
+            
+            console.log('Mobile play button created');
         }
 
         function hideMobilePlayButton() {
@@ -334,14 +505,48 @@
         }
 
         function onPlayerReady(event) {
-            // Player is ready
             console.log('YouTube player ready');
-
-            // On mobile, we need to manually start playback after user interaction
+            
+            // Enhanced mobile detection
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            console.log('Player ready - Device info:', {
+                isMobile: isMobile,
+                isIOS: isIOS,
+                isAndroid: isAndroid,
+                currentTrackIndex: currentTrackIndex
+            });
+            
+            // Always show mobile play button on mobile devices
             if (isMobile && currentTrackIndex >= 0) {
-                // Show a play button overlay for mobile users
+                console.log('Showing mobile play button');
                 showMobilePlayButton();
+                
+                // Also try to cue the video for better mobile compatibility
+                try {
+                    if (player && typeof player.cueVideoById === 'function') {
+                        const currentTrack = tracks[currentTrackIndex];
+                        if (currentTrack) {
+                            player.cueVideoById(currentTrack.youtube_id);
+                            console.log('Video cued successfully');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error cueing video:', error);
+                }
+            } else if (!isMobile && currentTrackIndex >= 0) {
+                // On desktop, try to play automatically
+                try {
+                    if (player && typeof player.playVideo === 'function') {
+                        player.playVideo();
+                        console.log('Auto-play started on desktop');
+                    }
+                } catch (error) {
+                    console.error('Error auto-playing video:', error);
+                    showMobilePlayButton(); // Fallback to manual play
+                }
             }
         }
 
@@ -471,6 +676,32 @@
             const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
             window.open(youtubeUrl, '_blank');
             hideEmbeddingFallback();
+        }
+
+        // Alternative iframe-based player for mobile
+        function createIframePlayer(videoId) {
+            console.log('Creating iframe player for video:', videoId);
+            
+            const videoContainer = document.getElementById('video-container');
+            const iframe = document.createElement('iframe');
+            
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=0&playsinline=1&rel=0&modestbranding=1&controls=1&showinfo=0&fs=1&cc_load_policy=0&iv_load_policy=3&origin=${encodeURIComponent(window.location.origin)}`;
+            iframe.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            `;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            
+            // Clear existing content
+            videoContainer.innerHTML = '';
+            videoContainer.appendChild(iframe);
+            
+            console.log('Iframe player created');
         }
 
         function playNext() {
@@ -638,6 +869,66 @@
             }
         });
 
+        // Mobile debugging function
+        function showMobileDebugInfo() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            
+            const debugInfo = {
+                userAgent: navigator.userAgent,
+                isMobile: isMobile,
+                isIOS: isIOS,
+                isAndroid: isAndroid,
+                hasYT: !!window.YT,
+                hasPlayer: !!player,
+                playerState: player ? player.getPlayerState() : 'No player',
+                currentTrackIndex: currentTrackIndex,
+                tracksLength: tracks.length,
+                online: navigator.onLine,
+                currentTrack: currentTrackIndex >= 0 ? tracks[currentTrackIndex] : null
+            };
+            
+            console.log('Mobile Debug Info:', debugInfo);
+            
+            // Show debug info in a notification
+            const debugText = `
+                Mobile: ${isMobile}
+                iOS: ${isIOS}
+                Android: ${isAndroid}
+                YT API: ${debugInfo.hasYT}
+                Player: ${debugInfo.hasPlayer}
+                State: ${debugInfo.playerState}
+                Track: ${currentTrackIndex + 1}/${tracks.length}
+            `.replace(/\s+/g, ' ').trim();
+            
+            showNotification(`🔍 Debug: ${debugText}`, 'info');
+        }
+
+        // Add debug button for mobile testing
+        function addMobileDebugButton() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile) {
+                const debugBtn = document.createElement('button');
+                debugBtn.innerHTML = '🔍 Debug';
+                debugBtn.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    left: 10px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    border: none;
+                    padding: 0.5rem;
+                    border-radius: 4px;
+                    font-size: 0.8rem;
+                    z-index: 10000;
+                    cursor: pointer;
+                `;
+                debugBtn.onclick = showMobileDebugInfo;
+                document.body.appendChild(debugBtn);
+            }
+        }
+
         // Initialize offline storage and UI
         document.addEventListener('DOMContentLoaded', async function() {
             // Set up online detection for automatic redirect
@@ -707,6 +998,18 @@
             const autoplayBtn = document.getElementById('autoplayBtn');
             autoplayBtn.classList.add('active');
             autoplayBtn.title = 'Autoplay: ON';
+            
+            // Add mobile debug button
+            addMobileDebugButton();
+            
+            // Log initialization info
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            console.log('Collection player initialized:', {
+                isMobile: isMobile,
+                tracksCount: tracks.length,
+                collectionId: collectionData.id,
+                online: navigator.onLine
+            });
             
             // Optional: Auto-start playing first track
             // playTrack(0);
