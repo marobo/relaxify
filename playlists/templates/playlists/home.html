@@ -208,6 +208,9 @@ function playTrack(videoId, title) {
 }
 
 function initPlayer(videoId) {
+    // Detect mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     player = new YT.Player('player', {
         height: '390',
         width: '640',
@@ -215,7 +218,27 @@ function initPlayer(videoId) {
         playerVars: {
             'playsinline': 1,
             'rel': 0,
-            'modestbranding': 1
+            'modestbranding': 1,
+            'autoplay': isMobile ? 0 : 1, // Disable autoplay on mobile
+            'fs': 1, // Allow fullscreen
+            'cc_load_policy': 0, // Don't load captions by default
+            'iv_load_policy': 3, // Hide video annotations
+            'enablejsapi': 1, // Enable JavaScript API
+            'origin': window.location.origin // Set origin for security
+        },
+        events: {
+            'onError': function(event) {
+                console.error('YouTube player error:', event.data);
+                const errorMessages = {
+                    2: 'Invalid video ID',
+                    5: 'HTML5 player error',
+                    100: 'Video not found or private',
+                    101: 'Video not allowed in embedded players',
+                    150: 'Video not allowed in embedded players'
+                };
+                const errorMessage = errorMessages[event.data] || 'Unknown error occurred';
+                alert(`Video Error: ${errorMessage}`);
+            }
         }
     });
 }

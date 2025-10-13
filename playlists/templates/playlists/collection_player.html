@@ -182,14 +182,24 @@
                 showNotification('📱 Offline Mode: Track info available, video requires internet', 'info');
             } else {
                 // Online mode - load YouTube player
-            if (player) {
-                player.loadVideoById(track.youtube_id);
-                hideLoadingPlaceholder();
-            } else {
-                initYouTubePlayer(track.youtube_id);
+                showLoadingPlaceholder();
+
+                if (player) {
+                    try {
+                        player.loadVideoById(track.youtube_id);
+                    } catch (error) {
+                        console.error('Error loading video:', error);
+                        showNotification('❌ Error loading video. Trying alternative method...', 'error');
+                        // Try to recreate the player
+                        setTimeout(() => {
+                            initYouTubePlayer(track.youtube_id);
+                        }, 1000);
+                    }
+                } else {
+                    initYouTubePlayer(track.youtube_id);
                 }
             }
-            
+
             isPlaying = true;
         }
 
@@ -241,6 +251,9 @@
         }
 
         function createPlayer(videoId) {
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
             player = new YT.Player('youtube-player', {
                 height: '100%',
                 width: '100%',
@@ -251,11 +264,17 @@
                     'modestbranding': 1,
                     'controls': 1,
                     'showinfo': 0,
-                    'autoplay': 1
+                    'autoplay': isMobile ? 0 : 1, // Disable autoplay on mobile
+                    'fs': 1, // Allow fullscreen
+                    'cc_load_policy': 0, // Don't load captions by default
+                    'iv_load_policy': 3, // Hide video annotations
+                    'enablejsapi': 1, // Enable JavaScript API
+                    'origin': window.location.origin // Set origin for security
                 },
                 events: {
                     'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
                 }
             });
             
@@ -266,11 +285,69 @@
             document.getElementById('loading-placeholder').style.display = 'none';
         }
 
+        function showLoadingPlaceholder() {
+            document.getElementById('loading-placeholder').style.display = 'flex';
+        }
+
+        function showMobilePlayButton() {
+            // Remove existing mobile play button if any
+            hideMobilePlayButton();
+
+            const playButton = document.createElement('div');
+            playButton.id = 'mobile-play-button';
+            playButton.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+                cursor: pointer;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+            `;
+            playButton.innerHTML = '<i class="fas fa-play"></i>';
+            playButton.onclick = function() {
+                if (player && player.playVideo) {
+                    player.playVideo();
+                }
+            };
+
+            const videoContainer = document.getElementById('video-container');
+            videoContainer.appendChild(playButton);
+        }
+
+        function hideMobilePlayButton() {
+            const playButton = document.getElementById('mobile-play-button');
+            if (playButton) {
+                playButton.remove();
+            }
+        }
+
         function onPlayerReady(event) {
             // Player is ready
+            console.log('YouTube player ready');
+
+            // On mobile, we need to manually start playback after user interaction
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobile && currentTrackIndex >= 0) {
+                // Show a play button overlay for mobile users
+                showMobilePlayButton();
+            }
         }
 
         function onPlayerStateChange(event) {
+            console.log('Player state changed:', event.data);
+
             if (event.data == YT.PlayerState.ENDED) {
                 if (isLoop) {
                     player.seekTo(0);
@@ -280,9 +357,120 @@
                 }
             } else if (event.data == YT.PlayerState.PLAYING) {
                 isPlaying = true;
+                hideMobilePlayButton();
             } else if (event.data == YT.PlayerState.PAUSED) {
                 isPlaying = false;
+            } else if (event.data == YT.PlayerState.BUFFERING) {
+                showLoadingPlaceholder();
+            } else if (event.data == YT.PlayerState.CUED) {
+                hideLoadingPlaceholder();
             }
+        }
+
+        function onPlayerError(event) {
+            console.error('YouTube player error:', event.data);
+
+            const errorMessages = {
+                2: 'Invalid video ID',
+                5: 'HTML5 player error',
+                100: 'Video not found or private',
+                101: 'Video not allowed in embedded players',
+                150: 'Video not allowed in embedded players'
+            };
+
+            const errorMessage = errorMessages[event.data] || 'Unknown error occurred';
+            const currentTrack = tracks[currentTrackIndex];
+
+            showNotification(`❌ Video Error: ${errorMessage}`, 'error');
+            // For embedding errors (101, 150), show a fallback option
+            if (event.data === 101 || event.data === 150) {
+                showEmbeddingErrorFallback(currentTrack);
+            } else {
+                // Try to play next track if available
+                if (currentTrackIndex < tracks.length - 1) {
+                    setTimeout(() => {
+                        showNotification('⏭️ Trying next track...', 'info');
+                        playNext();
+                    }, 2000);
+                } else {
+                    // Show error in video info
+                    document.getElementById('current-title').textContent = 'Video Unavailable';
+                    document.getElementById('current-artist').textContent = errorMessage;
+                }
+            }
+        }
+
+        function showEmbeddingErrorFallback(track) {
+            const videoContainer = document.getElementById('video-container');
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.id = 'embedding-fallback';
+            fallbackDiv.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                text-align: center;
+                padding: 2rem;
+                z-index: 1000;
+            `;
+
+            fallbackDiv.innerHTML = `
+                <div style="margin-bottom: 2rem;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4444; margin-bottom: 1rem;"></i>
+                    <h3 style="margin-bottom: 1rem;">Video Not Available in Player</h3>
+                    <p style="color: #aaa; margin-bottom: 2rem;">This video cannot be played in the embedded player, but you can watch it directly on YouTube.</p>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                    <button onclick="openInYouTube('${track.youtube_id}')" style="
+                        background: #ff0000;
+                        color: white;
+                        border: none;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    ">
+                        <i class="fab fa-youtube"></i>
+                        Watch on YouTube
+                    </button>
+                    <button onclick="hideEmbeddingFallback()" style="
+                        background: #333;
+                        color: white;
+                        border: none;
+                        padding: 0.75rem 1.5rem;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 1rem;
+                    ">
+                        Close
+                    </button>
+                </div>
+            `;
+
+            videoContainer.appendChild(fallbackDiv);
+        }
+
+        function hideEmbeddingFallback() {
+            const fallback = document.getElementById('embedding-fallback');
+            if (fallback) {
+                fallback.remove();
+            }
+        }
+
+        function openInYouTube(videoId) {
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            window.open(youtubeUrl, '_blank');
+            hideEmbeddingFallback();
         }
 
         function playNext() {
