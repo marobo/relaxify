@@ -132,6 +132,7 @@
         let offlineStorage;
         let isOffline = !navigator.onLine;
         let currentIframe = null; // For iPhone iframe management
+        let isFirstVideo = true; // Track if this is the first video
         let collectionData = {
             id: {{ collection.id }},
             name: '{{ collection.name|escapejs }}',
@@ -288,8 +289,12 @@
             currentIframe.allowFullscreen = true;
             currentIframe.referrerPolicy = 'strict-origin-when-cross-origin';
             
-            // Use the working URL format with mute=1 for iPhone autoplay
-            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+            // Use mute=1 only for the first video, then unmute for subsequent videos
+            const muteParam = isFirstVideo ? '&mute=1' : '';
+            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1`;
+            
+            // Mark that we've played the first video
+            isFirstVideo = false;
             
             currentIframe.style.cssText = `
                 position: absolute;

@@ -207,6 +207,9 @@ function playTrack(videoId, title) {
     playerModal.show();
 }
 
+// Track if this is the first video for iPhone
+let isFirstHomeVideo = true;
+
 function initPlayer(videoId) {
     // Detect iPhone to use iframe instead of YouTube API
     const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -214,6 +217,11 @@ function initPlayer(videoId) {
     if (isIPhone) {
         // Use direct iframe for iPhone (works better)
         const playerElement = document.getElementById('player');
+        
+        // Use mute=1 only for the first video
+        const muteParam = isFirstHomeVideo ? '&mute=1' : '';
+        isFirstHomeVideo = false; // Mark that we've played the first video
+        
         playerElement.innerHTML = `
             <iframe
                 id="youtube-player"
@@ -223,7 +231,7 @@ function initPlayer(videoId) {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin"
-                src="https://www.youtube.com/embed/${videoId}?playsinline=1&mute=1&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1">
+                src="https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1">
             </iframe>
         `;
     } else {
