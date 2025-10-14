@@ -1,7 +1,7 @@
 {% extends 'base_site.html' %}
 {% load static %}
 
-{% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}
+{% block title %}Relaxify - {% if current_filter == 'collections' %}YouTube Playlists{% elif current_filter == 'tracks' %}Individual Tracks{% else %}All Music{% endif %}{% endblock %}                                                         
 
 {% block content %}
 <div class="container py-4">
@@ -84,12 +84,12 @@
                         <div class="collection-stats">
                             <div class="collection-stat">
                                 <i class="fas fa-music"></i>
-                                <span>{{ collection.playlist_count }} track{{ collection.playlist_count|pluralize }}</span>
+                                <span>{{ collection.playlist_count }} track{{ collection.playlist_count|pluralize }}</span>                                     
                             </div>
                             {% if collection.total_duration_formatted %}
                                 <div class="collection-stat">
                                     <i class="fas fa-clock"></i>
-                                    <span>{{ collection.total_duration_formatted }}</span>
+                                    <span>{{ collection.total_duration_formatted }}</span>                                                                      
                                 </div>
                             {% endif %}
                         </div>
@@ -114,12 +114,12 @@
             <div class="row">
                 {% for track in individual_tracks %}
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="track-card" onclick="playTrack('{{ track.youtube_id }}', '{{ track.title|escapejs }}')">
+                    <div class="track-card" onclick="playTrack('{{ track.youtube_id }}', '{{ track.title|escapejs }}')">                                        
                         {% if track.thumbnail_url %}
-                            <img src="{{ track.thumbnail_url }}" class="track-thumbnail" alt="{{ track.title }}">
+                            <img src="{{ track.thumbnail_url }}" class="track-thumbnail" alt="{{ track.title }}">                                               
                         {% else %}
-                            <div class="track-thumbnail track-thumbnail-placeholder">
-                                <i class="fas fa-music text-white icon-medium"></i>
+                            <div class="track-thumbnail track-thumbnail-placeholder">                                                                           
+                                <i class="fas fa-music text-white icon-medium"></i>                                                                             
                             </div>
                         {% endif %}
                         
@@ -131,7 +131,7 @@
                         
                         <div class="track-meta">
                             <span>
-                                <i class="fas fa-eye"></i> {{ track.view_count|floatformat:0 }}
+                                <i class="fas fa-eye"></i> {{ track.view_count|floatformat:0 }}                                                                 
                             </span>
                             {% if track.duration %}
                                 <span>{{ track.duration }}</span>
@@ -149,7 +149,7 @@
         <div class="empty-state">
             <i class="fas fa-music"></i>
             <h3>No music collections yet</h3>
-            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>
+            <p>Start by importing your favorite YouTube playlists or individual tracks!</p>                                                                     
         </div>
     {% endif %}
     <div class="import-cta" data-import-url="{% url 'playlists:import' %}">
@@ -161,7 +161,7 @@
         <a href="{% url 'playlists:import' %}" class="btn btn-primary">
             <i class="fas fa-download"></i> Import Playlist
         </a>
-        <a href="{% url 'playlists:offline_manager' %}" class="btn btn-outline-light ms-2">
+        <a href="{% url 'playlists:offline_manager' %}" class="btn btn-outline-light ms-2">                                                                     
             <i class="fas fa-wifi-slash"></i> Offline Manager
         </a>
     </div>
@@ -172,8 +172,8 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content bg-dark">
             <div class="modal-header">
-                <h5 class="modal-title text-white" id="playerModalTitle">Now Playing</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title text-white" id="playerModalTitle">Now Playing</h5>                                                                       
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>                                                       
             </div>
             <div class="modal-body">
                 <div id="player"></div>
@@ -206,7 +206,7 @@ let playerModal;
 
 function playTrack(videoId, title) {
     if (!playerModal) {
-        playerModal = new bootstrap.Modal(document.getElementById('playerModal'));
+        playerModal = new bootstrap.Modal(document.getElementById('playerModal'));                                                                              
     }
     
     document.getElementById('playerModalTitle').textContent = title;
@@ -245,7 +245,7 @@ function initPlayer(videoId) {
 }
 
 // Stop video when modal is closed
-document.getElementById('playerModal').addEventListener('hidden.bs.modal', function() {
+document.getElementById('playerModal').addEventListener('hidden.bs.modal', function() {                                                                         
     if (player && player.pauseVideo) {
         player.pauseVideo();
     }
