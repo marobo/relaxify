@@ -931,11 +931,11 @@ a:hover {
     margin-bottom: 1rem;
 }
 
-.btn-group button {
+.btn-group a {
     border-radius: 20px;
 }
 
-.btn-group button a:hover, .btn-group .active a {
+.btn-group a:hover, .btn-group .active a {
     box-shadow: none;
     color: var(--bg-light);
 }
