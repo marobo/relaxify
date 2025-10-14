@@ -6,16 +6,22 @@
 {% block content %}
 <div class="container py-4">
     <!-- Filter Section -->
-    <div class="d-flex gap-3 flex-wrap mb-3">
-        <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">                                                                  
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'all' %}active{% else %}bg-outline-primary{% endif %}">🎼 All</span>            
-        </a>
-        <a href="{% url 'playlists:home' %}?filter=collections" class="filter-link" data-filter="collections">                                                  
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'collections' %}active{% else %}bg-outline-primary{% endif %}">🎵 Collections</span>                                                                            
-        </a>
-        <a href="{% url 'playlists:home' %}?filter=tracks" class="filter-link" data-filter="tracks">                                                            
-            <span class="btn btn-outline-primary btn-sm {% if current_filter == 'tracks' %}active{% else %}bg-outline-primary{% endif %}">🎧 Tracks</span>      
-        </a>
+    <div class="btn-group mb-3 justify-content-center align-items-center" role="group" aria-label="Filter">
+        <button type="button" class="btn btn btn-outline-info {% if current_filter == 'all' %}active{% endif %}">
+            <a href="{% url 'playlists:home' %}?filter=all" class="filter-link" data-filter="all">
+                🎼 All
+            </a>
+        </button>
+        <button type="button" class="btn btn btn-outline-success {% if current_filter == 'collections' %}active{% endif %}">
+            <a href="{% url 'playlists:home' %}?filter=collections" class="filter-link" data-filter="collections">
+                🎵 Collections
+            </a>
+        </button>
+        <button type="button" class="btn btn btn-outline-danger {% if current_filter == 'tracks' %}active{% endif %}">
+            <a href="{% url 'playlists:home' %}?filter=tracks" class="filter-link" data-filter="tracks">
+                🎧 Tracks
+            </a>
+        </button>
     </div>
 
     <!-- Collections Section -->

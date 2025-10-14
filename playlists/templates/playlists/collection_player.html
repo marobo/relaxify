@@ -53,7 +53,7 @@
                             <i class="fab fa-youtube"></i> YouTube
                         </span>
                     {% endif %}
-                    <span id="track-count">{{ collection.playlist_count }} tracks</span>
+                    <span class="playlist-count">{{ collection.playlist_count }} tracks</span>
                     <span id="cached-indicator" class="cached-indicator" style="display: none;">
                         <i class="fas fa-download"></i> Cached
                     </span>
@@ -343,6 +343,9 @@
                     if (currentIframe && currentIframe.parentNode) {
                         currentIframe.parentNode.removeChild(currentIframe);
                     }
+                },
+                events: {
+                    'onStateChange': onPlayerStateChange
                 }
             };
             
@@ -352,15 +355,6 @@
 
         function hideLoadingPlaceholder() {
             document.getElementById('loading-placeholder').style.display = 'none';
-        }
-
-        function onPlayerReady(event) {
-            // Player is ready
-            console.log('YouTube player ready');
-            // Auto-play the video when ready
-            if (player && player.playVideo) {
-                player.playVideo();
-            }
         }
 
         function onPlayerStateChange(event) {
@@ -564,7 +558,6 @@
                     
                     // Show offline indicators
                     showCachedIndicator();
-                    updateOfflineStatus();
                     
                     // Clear sessionStorage data
                     sessionStorage.removeItem('offlineMode');
@@ -604,8 +597,6 @@
                     document.getElementById('saveOfflineBtn').style.display = 'none';
                 }
                 
-                // Update offline status
-                updateOfflineStatus();
             }
             
             // Set autoplay button as active by default
@@ -728,25 +719,6 @@
             indicator.style.fontWeight = '600';
         }
 
-        // Update offline status
-        function updateOfflineStatus() {
-            const offlineIndicator = document.getElementById('offline-indicator');
-            
-            if (isOffline) {
-                offlineIndicator.style.display = 'inline-flex';
-                offlineIndicator.style.alignItems = 'center';
-                offlineIndicator.style.gap = '0.25rem';
-                offlineIndicator.style.background = 'rgba(245, 158, 11, 0.2)';
-                offlineIndicator.style.color = '#f59e0b';
-                offlineIndicator.style.padding = '0.2rem 0.5rem';
-                offlineIndicator.style.borderRadius = '4px';
-                offlineIndicator.style.fontSize = '0.7rem';
-                offlineIndicator.style.fontWeight = '600';
-                offlineIndicator.style.marginLeft = '0.5rem';
-            } else {
-                offlineIndicator.style.display = 'none';
-            }
-        }
 
         // Save player state periodically
         async function savePlayerState() {
