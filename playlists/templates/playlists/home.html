@@ -54,20 +54,28 @@
                         {% endif %}
                         
                         {% if collection.thumbnail_url %}
-                            <a href="{% url 'playlists:collection_player' collection.id %}">                                                                    
-                                <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">                             
-                            </a>
+                            <div class="collection-thumbnail-container"
+                                 data-collection-id="{{ collection.id }}"
+                                 data-collection-name="{{ collection.name|escapejs }}"
+                                 data-collection-platform="{{ collection.platform }}"
+                                 data-collection-count="{{ collection.playlist_count }}"
+                                 style="cursor: pointer;">
+                                <img src="{{ collection.thumbnail_url }}" class="collection-thumbnail" alt="{{ collection.name }}">
+                            </div>
                         {% else %}
-                            <div class="collection-placeholder">
-                                <a href="{% url 'playlists:collection_player' collection.id %}">                                                                
-                                    {% if collection.platform == 'youtube' %}
-                                        <i class="fab fa-youtube text-white icon-large"></i>                                                                    
-                                    {% elif collection.platform == 'youtube_music' %}                                                                           
-                                        <i class="fab fa-youtube text-white icon-large"></i>                                                                    
-                                    {% else %}
-                                        <i class="fas fa-layer-group text-white icon-large"></i>                                                                
-                                    {% endif %}
-                                </a>
+                            <div class="collection-placeholder collection-thumbnail-container"
+                                 data-collection-id="{{ collection.id }}"
+                                 data-collection-name="{{ collection.name|escapejs }}"
+                                 data-collection-platform="{{ collection.platform }}"
+                                 data-collection-count="{{ collection.playlist_count }}"
+                                 style="cursor: pointer;">
+                                {% if collection.platform == 'youtube' %}
+                                    <i class="fab fa-youtube text-white icon-large"></i>
+                                {% elif collection.platform == 'youtube_music' %}
+                                    <i class="fab fa-youtube text-white icon-large"></i>
+                                {% else %}
+                                    <i class="fas fa-layer-group text-white icon-large"></i>
+                                {% endif %}
                             </div>
                         {% endif %}
                         
@@ -179,9 +187,25 @@
         </div>
     </div>
 </div>
+
+<!-- Collection Player Modal -->
+<div class="modal fade" id="collectionPlayerModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="collectionPlayerModalTitle">Collection Player</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                {% include 'playlists/collection_player_content.html' with is_modal=True %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/collection_player.js' %}"></script>
 <script>
 let player;
 let playerModal;
@@ -244,6 +268,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Collection player modal functionality
+    const collectionCards = document.querySelectorAll('.collection-thumbnail-container');
+    collectionCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const collectionId = parseInt(this.dataset.collectionId);
+            const collectionName = this.dataset.collectionName;
+            const collectionPlatform = this.dataset.collectionPlatform;
+            const collectionCount = parseInt(this.dataset.collectionCount);
+            
+            openCollectionPlayer(collectionId, collectionName, collectionPlatform, collectionCount);
+        });
+    });
 });
 
 // Save for offline functionality
