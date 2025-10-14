@@ -131,6 +131,8 @@
         let tracks = [];
         let offlineStorage;
         let isOffline = !navigator.onLine;
+        let currentIframe = null; // For iPhone iframe management
+        let isFirstVideo = true; // Track if this is the first video
         let collectionData = {
             id: {{ collection.id }},
             name: '{{ collection.name|escapejs }}',
@@ -182,11 +184,17 @@
                 showNotification('📱 Offline Mode: Track info available, video requires internet', 'info');
             } else {
                 // Online mode - load YouTube player
-            if (player) {
-                player.loadVideoById(track.youtube_id);
-                hideLoadingPlaceholder();
-            } else {
-                initYouTubePlayer(track.youtube_id);
+                if (player) {
+                    player.loadVideoById(track.youtube_id);
+                    // Auto-play the video after loading
+                    setTimeout(() => {
+                        if (player && player.playVideo) {
+                            player.playVideo();
+                        }
+                    }, 1000); // Small delay to ensure video is loaded
+                    hideLoadingPlaceholder();
+                } else {
+                    initYouTubePlayer(track.youtube_id);
                 }
             }
             
@@ -241,30 +249,116 @@
         }
 
         function createPlayer(videoId) {
-            player = new YT.Player('youtube-player', {
-                height: '100%',
-                width: '100%',
-                videoId: videoId,
-                playerVars: {
-                    'playsinline': 1,
-                    'rel': 0,
-                    'modestbranding': 1,
-                    'controls': 1,
-                    'showinfo': 0,
-                    'autoplay': 1
+            // Detect iPhone to use iframe instead of YouTube API
+            const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            
+            if (isIPhone) {
+                // Use direct iframe for iPhone (works better)
+                createIPhoneIframePlayer(videoId);
+            } else {
+                // Use YouTube API for other devices
+                player = new YT.Player('youtube-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'playsinline': 1,
+                        'rel': 0,
+                        'modestbranding': 1,
+                        'controls': 1,
+                        'showinfo': 0,
+                        'autoplay': 1
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+                
+                hideLoadingPlaceholder();
+            }
+        }
+
+        function createIPhoneIframePlayer(videoId) {
+            const videoContainer = document.getElementById('video-container');
+            
+            // Clear existing content
+            videoContainer.innerHTML = '';
+            
+            // Create iframe with iPhone-optimized parameters (based on your working example)
+            currentIframe = document.createElement('iframe');
+            currentIframe.id = 'youtube-player';
+            currentIframe.width = '100%';
+            currentIframe.height = '100%';
+            currentIframe.frameBorder = '0';
+            currentIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            currentIframe.allowFullscreen = true;
+            currentIframe.referrerPolicy = 'strict-origin-when-cross-origin';
+            
+            // Use mute=1 only for the first video, then unmute for subsequent videos
+            const muteParam = isFirstVideo ? '&mute=1' : '';
+            currentIframe.src = `https://www.youtube.com/embed/${videoId}?playsinline=1${muteParam}&autoplay=1&rel=0&modestbranding=1&controls=1&showinfo=0&enablejsapi=1&start=0`;
+            
+            // Mark that we've played the first video
+            isFirstVideo = false;
+            
+            currentIframe.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: none;
+            `;
+            
+            videoContainer.appendChild(currentIframe);
+            
+            // Create a mock player object for iPhone compatibility
+            player = {
+                playVideo: function() {
+                    console.log('iPhone: Video should already be playing with autoplay');
+                    // Try to trigger play by refreshing the iframe with autoplay
+                    if (currentIframe) {
+                        const currentSrc = currentIframe.src;
+                        if (!currentSrc.includes('autoplay=1')) {
+                            currentIframe.src = currentSrc + (currentSrc.includes('?') ? '&' : '?') + 'autoplay=1';
+                        }
+                    }
+                },
+                pauseVideo: function() {
+                    console.log('iPhone: Pause not available in iframe mode');
+                },
+                stopVideo: function() {
+                    console.log('iPhone: Stop not available in iframe mode');
+                },
+                getPlayerState: function() {
+                    return 1; // PLAYING state
+                },
+                loadVideoById: function(id) {
+                    console.log('iPhone: Loading new video:', id);
+                    // Completely recreate the iframe for new video
+                    createIPhoneIframePlayer(id);
+                },
+                destroy: function() {
+                    if (currentIframe && currentIframe.parentNode) {
+                        currentIframe.parentNode.removeChild(currentIframe);
+                    }
                 },
                 events: {
                     'onStateChange': onPlayerStateChange
                 }
-            });
+            };
             
             hideLoadingPlaceholder();
+            console.log('iPhone iframe player created successfully');
         }
 
         function hideLoadingPlaceholder() {
-            document.getElementById('loading-placeholder').style.display = 'none';
+            const loadingPlaceholder = document.getElementById('loading-placeholder');
+            if (loadingPlaceholder) {
+                loadingPlaceholder.style.display = 'none';
+            }
         }
-
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.ENDED) {
