@@ -5,6 +5,12 @@
 
 {% block content %}
 <div class="container py-4">
+    <div class="d-flex justify-content-end align-items-end">
+        <a href="{% url 'playlists:import' %}" class="btn btn-success text-white mb-3 me-2">
+            <i class="fas fa-plus"></i> Add Music
+        </a>
+    </div>
+
     <!-- Filter Section -->
     <div class="btn-group mb-3 justify-content-center align-items-center" role="group" aria-label="Filter">
         <a href="{% url 'playlists:home' %}?filter=all" class="btn btn btn-outline-info {% if current_filter == 'all' %}active{% endif %}" data-filter="all">
