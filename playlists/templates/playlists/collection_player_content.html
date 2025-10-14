@@ -1,0 +1,116 @@
+<!-- Collection Player Content (Reusable Partial) -->
+<div class="collection-player-container">
+    <!-- Video Section -->
+    <div class="video-section">
+        <!-- Close Button (only show in full-page mode) -->
+        {% if not is_modal %}
+        <button class="close-btn" onclick="location.href='{% url 'playlists:home' %}'">
+            <i class="fas fa-times"></i>
+        </button>
+        {% endif %}
+
+        <!-- Video Player -->
+        <div class="video-player" id="{% if is_modal %}collection-{% endif %}video-container">
+            <div class="loading-placeholder" id="{% if is_modal %}collection-{% endif %}loading-placeholder">
+                <div class="spinner"></div>
+                <p>{% if is_modal %}Loading player...{% else %}Waiting for player...{% endif %}</p>
+            </div>
+            <div id="{% if is_modal %}collection-{% endif %}youtube-player"></div>
+        </div>
+
+        <!-- Video Info -->
+        <div class="video-info">
+            <h1 class="video-title" id="{% if is_modal %}collection-{% endif %}current-title">Select a track to start playing</h1>
+            <div class="video-artist" id="{% if is_modal %}collection-{% endif %}current-artist">Choose from the playlist on the right</div>
+            <div class="video-stats">
+                <span><i class="fas fa-clock"></i> <span id="{% if is_modal %}collection-{% endif %}current-duration">--:--</span></span>
+                <span><i class="fas fa-eye"></i> <span id="{% if is_modal %}collection-{% endif %}current-views">--</span> views</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Playlist Section -->
+    <div class="playlist-section">
+        <!-- Playlist Header -->
+        <div class="{% if is_modal %}playlist-header{% else %}row playlist-header d-flex justify-content-between{% endif %}">
+            <div class="{% if is_modal %}playlist-title{% else %}col-12 playlist-title{% endif %}" id="{% if is_modal %}collection-{% endif %}playlist-title">
+                {% if collection %}{{ collection.name }}{% else %}Loading...{% endif %}
+            </div>
+            <div class="{% if is_modal %}playlist-subtitle{% else %}col-12 playlist-subtitle d-flex justify-content-start{% endif %}" id="{% if is_modal %}collection-{% endif %}playlist-subtitle">
+                {% if collection %}
+                    {% if collection.platform == 'youtube' or collection.platform == 'youtube_music' %}
+                        <span class="platform-badge">
+                            <i class="fab fa-youtube"></i> YouTube
+                        </span>
+                    {% endif %}
+                    <span class="playlist-count">{{ collection.playlist_count }} tracks</span>
+                    <span id="{% if is_modal %}collection-{% endif %}cached-indicator" class="cached-indicator" style="display: none;">
+                        <i class="fas fa-download"></i> Cached
+                    </span>
+                    <button class="control-btn" onclick="saveForOffline()" title="Save for Offline" id="{% if is_modal %}collection-{% endif %}saveOfflineBtn">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="control-btn" onclick="shufflePlaylist()" title="Shuffle">
+                        <i class="fas fa-random"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleLoop()" title="Loop" id="{% if is_modal %}collection-{% endif %}loopBtn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="control-btn" onclick="toggleAutoplay()" title="Autoplay" id="{% if is_modal %}collection-{% endif %}autoplayBtn">
+                        <i class="fas fa-play-circle"></i>
+                    </button>
+                {% else %}
+                    <span class="playlist-count">0 tracks</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Track List -->
+        <div class="track-list" id="{% if is_modal %}collection-{% endif %}track-list">
+            {% if tracks and not is_modal %}
+                {% for track in tracks %}
+                    <div class="track-item" 
+                         data-track-id="{{ track.id }}"
+                         data-youtube-id="{{ track.youtube_id }}"
+                         data-title="{{ track.title|escapejs }}"
+                         data-artist="{{ track.artist|default:'Unknown Artist'|escapejs }}"
+                         data-duration="{{ track.duration|default:'--:--' }}"
+                         data-views="{{ track.view_count|default:0 }}"
+                         data-thumbnail="{{ track.thumbnail_url|default:'' }}"
+                         onclick="playTrack({{ forloop.counter0 }})">
+                        
+                        <div class="track-number" id="{% if is_modal %}collection-{% endif %}track-number-{{ forloop.counter0 }}">
+                            {{ forloop.counter }}
+                        </div>
+                        
+                        {% if track.thumbnail_url %}
+                            <img src="{{ track.thumbnail_url }}" alt="{{ track.title }}" class="track-thumbnail">
+                        {% else %}
+                            <div class="track-thumbnail-placeholder">
+                                <i class="fas fa-music" style="font-size: 0.7rem; color: rgba(255,255,255,0.5);"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="track-info">
+                            <div class="track-title">{{ track.title }}</div>
+                            <div class="track-artist">{{ track.artist|default:"Unknown Artist" }}</div>
+                        </div>
+                        
+                        <div class="track-duration">{{ track.duration|default:"--:--" }}</div>
+                        
+                        <div class="track-actions" style="opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;">
+                            <button class="track-action-btn" onclick="event.stopPropagation(); removeTrack({{ track.id }}, {{ forloop.counter0 }})" title="Remove track">
+                                <i class="fas fa-minus" style="color: #ff4444;"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: #aaa;">
+                    <i class="fas fa-music" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p>{% if is_modal %}Loading tracks...{% else %}No tracks in this collection{% endif %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
