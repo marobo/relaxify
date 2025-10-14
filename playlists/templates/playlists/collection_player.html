@@ -354,7 +354,10 @@
         }
 
         function hideLoadingPlaceholder() {
-            document.getElementById('loading-placeholder').style.display = 'none';
+            const loadingPlaceholder = document.getElementById('loading-placeholder');
+            if (loadingPlaceholder) {
+                loadingPlaceholder.style.display = 'none';
+            }
         }
 
         function onPlayerStateChange(event) {
