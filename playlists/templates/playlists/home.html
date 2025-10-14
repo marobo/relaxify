@@ -7,13 +7,13 @@
 <div class="container py-4">
     <!-- Filter Section -->
     <div class="btn-group mb-3 justify-content-center align-items-center" role="group" aria-label="Filter">
-        <a href="{% url 'playlists:home' %}?filter=all" class="btn btn btn-outline-info {% if current_filter == 'all' %}active{% endif %}filter-link" data-filter="all">
+        <a href="{% url 'playlists:home' %}?filter=all" class="btn btn btn-outline-info {% if current_filter == 'all' %}active{% endif %}" data-filter="all">
             🎼 All
         </a>
-        <a href="{% url 'playlists:home' %}?filter=collections" class="btn btn btn-outline-success {% if current_filter == 'collections' %}active{% endif %}filter-link" data-filter="collections">
+        <a href="{% url 'playlists:home' %}?filter=collections" class="btn btn btn-outline-success {% if current_filter == 'collections' %}active{% endif %}" data-filter="collections">
             🎵 Collections
         </a>
-        <a href="{% url 'playlists:home' %}?filter=tracks" class="btn btn btn-outline-danger {% if current_filter == 'tracks' %}active{% endif %}filter-link" data-filter="tracks">
+        <a href="{% url 'playlists:home' %}?filter=tracks" class="btn btn btn-outline-danger {% if current_filter == 'tracks' %}active{% endif %}" data-filter="tracks">
             🎧 Tracks
         </a>
     </div>
